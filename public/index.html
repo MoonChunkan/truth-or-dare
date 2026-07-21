@@ -4,26 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#667eea">
-    <title>Game Suite - Multiplayer Games</title>
+    <meta name="theme-color" content="#007AFF">
+    <title>Game Suite</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
-        :root {
-            --primary: #667eea;
-            --primary-dark: #764ba2;
-            --secondary: #2ecc71;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --info: #3498db;
-            --dark: #2c3e50;
-            --light: #ecf0f1;
-            --text: #333;
-            --text-light: #777;
-            --border: #ddd;
-            --shadow: 0 10px 40px rgba(0,0,0,0.1);
-            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -34,9 +18,9 @@
         html, body {
             width: 100%;
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: #f8f9fa;
-            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
         }
 
         body {
@@ -51,115 +35,113 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .screen {
             display: none;
             width: 100%;
             height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            flex: 1;
-            padding: clamp(20px, 5vw, 40px);
+            padding: 20px;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-top: 60px;
         }
 
         .screen.active {
             display: flex;
-            flex-direction: column;
         }
 
-        .content {
+        .screen-center {
             width: 100%;
             max-width: 600px;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
         /* Status Bar */
         .status-bar {
             position: fixed;
-            top: 16px;
+            top: 12px;
             right: 16px;
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: 20px;
             font-size: 12px;
-            background: var(--secondary);
+            background: #34C759;
             color: white;
             z-index: 999;
             font-weight: 600;
-            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .status-bar.offline {
-            background: var(--danger);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            background: #FF3B30;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: currentColor;
+            background: white;
         }
 
         /* Typography */
         h1 {
-            font-size: clamp(32px, 8vw, 48px);
-            font-weight: 800;
+            font-size: 42px;
+            font-weight: 700;
             margin-bottom: 12px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #007AFF;
         }
 
         h2 {
-            font-size: clamp(24px, 6vw, 36px);
+            font-size: 32px;
             font-weight: 700;
             margin-bottom: 16px;
-            color: var(--text);
+            color: #000;
         }
 
         h3 {
-            font-size: clamp(18px, 5vw, 24px);
+            font-size: 20px;
             font-weight: 600;
             margin-bottom: 12px;
+            color: #333;
         }
 
         p {
-            font-size: clamp(14px, 4vw, 16px);
-            line-height: 1.6;
-            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.5;
+            color: #666;
             margin-bottom: 12px;
         }
 
         /* Buttons */
         .btn {
-            padding: clamp(14px, 3vw, 16px) clamp(20px, 4vw, 24px);
+            width: 100%;
+            max-width: 300px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 10px;
-            font-size: clamp(14px, 3.5vw, 15px);
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-            min-height: 50px;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
+            gap: 8px;
             touch-action: manipulation;
         }
 
@@ -167,398 +149,319 @@
             transform: scale(0.98);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: #007AFF;
             color: white;
-            box-shadow: var(--shadow);
         }
 
         .btn-primary:hover {
-            box-shadow: 0 12px 50px rgba(102, 126, 234, 0.3);
+            background: #0056B3;
         }
 
         .btn-secondary {
             background: white;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            box-shadow: var(--shadow-sm);
+            color: #007AFF;
+            border: 2px solid #007AFF;
         }
 
         .btn-secondary:hover {
-            background: #f8f9fa;
+            background: #f0f8ff;
         }
 
         .btn-success {
-            background: linear-gradient(135deg, var(--secondary), #27ae60);
+            background: #34C759;
             color: white;
-            box-shadow: var(--shadow);
         }
 
-        .btn-info {
-            background: linear-gradient(135deg, var(--info), #2980b9);
-            color: white;
-            box-shadow: var(--shadow);
+        .btn-success:hover {
+            background: #28a345;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, var(--danger), #c0392b);
+            background: #FF3B30;
             color: white;
-            box-shadow: var(--shadow);
         }
 
         .btn-back {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-back:hover {
-            background: rgba(255,255,255,0.25);
-        }
-
-        .btn-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .btn-row .btn {
-            margin-bottom: 0;
+            background: #E5E5E5;
+            color: #333;
         }
 
         /* Input Fields */
-        input, select {
+        input {
             width: 100%;
-            padding: clamp(12px, 3vw, 14px);
-            border: 2px solid var(--border);
-            border-radius: 8px;
+            max-width: 300px;
+            padding: 14px;
+            border: 2px solid #E5E5E5;
+            border-radius: 10px;
             font-size: 16px;
-            margin-bottom: 12px;
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .input-group {
             margin-bottom: 16px;
+            text-align: center;
         }
 
-        .input-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            color: var(--text-light);
+        input:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
         }
 
-        /* Card Components */
+        /* Card */
         .card {
             background: white;
             border-radius: 12px;
-            padding: clamp(16px, 4vw, 24px);
-            margin-bottom: 16px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid #f0f0f0;
-        }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-light);
-            margin-bottom: 12px;
-        }
-
-        .card-large {
-            padding: clamp(24px, 6vw, 32px);
+            padding: 24px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             text-align: center;
         }
 
         /* Screen Backgrounds */
-        .screen-gradient-1 {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        .bg-home { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-lobby { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-select { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-tod { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-hol { background: linear-gradient(135deg, #34C759 0%, #27ae60 100%); }
+        .bg-battle { background: linear-gradient(135deg, #007AFF 0%, #0056B3 100%); }
+        .bg-wordle { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        .bg-scores { background: linear-gradient(135deg, #FF9500 0%, #FF3B30 100%); }
+
+        .screen.bg-home .screen-center,
+        .screen.bg-lobby .screen-center,
+        .screen.bg-select .screen-center,
+        .screen.bg-tod .screen-center,
+        .screen.bg-hol .screen-center,
+        .screen.bg-battle .screen-center,
+        .screen.bg-wordle .screen-center,
+        .screen.bg-scores .screen-center {
             color: white;
         }
 
-        .screen-gradient-2 {
-            background: linear-gradient(135deg, var(--secondary) 0%, #27ae60 100%);
+        .screen.bg-home h1,
+        .screen.bg-lobby h1,
+        .screen.bg-select h1,
+        .screen.bg-tod h1,
+        .screen.bg-hol h1,
+        .screen.bg-battle h1,
+        .screen.bg-wordle h1,
+        .screen.bg-scores h1 {
             color: white;
         }
 
-        .screen-gradient-3 {
-            background: linear-gradient(135deg, var(--info) 0%, #2980b9 100%);
+        .screen.bg-home h2,
+        .screen.bg-lobby h2,
+        .screen.bg-select h2,
+        .screen.bg-tod h2,
+        .screen.bg-hol h2,
+        .screen.bg-battle h2,
+        .screen.bg-wordle h2,
+        .screen.bg-scores h2 {
             color: white;
         }
 
-        .screen-gradient-4 {
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-            color: white;
+        .screen.bg-home p,
+        .screen.bg-lobby p,
+        .screen.bg-select p,
+        .screen.bg-tod p,
+        .screen.bg-hol p,
+        .screen.bg-battle p,
+        .screen.bg-wordle p,
+        .screen.bg-scores p {
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .screen-gradient-5 {
-            background: linear-gradient(135deg, var(--warning) 0%, #e67e22 100%);
-            color: white;
-        }
-
-        /* Room Code Display */
+        /* Room Code Box */
         .room-code-box {
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
-            padding: clamp(20px, 5vw, 28px);
+            padding: 24px;
             margin: 24px 0;
+            width: 100%;
+            max-width: 300px;
             backdrop-filter: blur(10px);
             text-align: center;
         }
 
-        .room-code-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.9;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
         .room-code {
-            font-size: clamp(36px, 10vw, 48px);
+            font-size: 48px;
             font-weight: 900;
-            letter-spacing: 6px;
+            letter-spacing: 8px;
             font-family: 'Courier New', monospace;
-            margin: 12px 0;
-            text-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .room-code-copy {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-top: 8px;
-        }
-
-        /* Game Options */
-        .game-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        @media (min-width: 600px) {
-            .game-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-sm);
-            border: 2px solid transparent;
-            text-align: center;
-        }
-
-        .game-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow);
-            border-color: var(--primary);
-        }
-
-        .game-card h3 {
-            margin-bottom: 8px;
-            font-size: 18px;
-        }
-
-        .game-card p {
-            font-size: 13px;
-            margin: 0;
+            margin: 16px 0;
+            word-break: break-all;
         }
 
         /* Players List */
         .players-list {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            padding: clamp(16px, 4vw, 20px);
-            margin: 16px 0;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
             backdrop-filter: blur(10px);
-        }
-
-        .players-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            opacity: 0.9;
+            text-align: center;
         }
 
         .player-item {
-            padding: 10px 12px;
-            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             margin-bottom: 8px;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .player-item:last-child {
             margin-bottom: 0;
         }
 
-        .player-badge {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--secondary);
-            border-radius: 50%;
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            max-width: 340px;
+            margin: 24px 0;
         }
 
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
+        .game-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-            backdrop-filter: blur(5px);
+            gap: 12px;
+            min-height: 140px;
         }
 
-        .modal.active {
-            display: flex;
+        .game-card:active {
+            transform: scale(0.95);
         }
 
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: clamp(24px, 6vw, 32px);
-            max-width: 400px;
+        .game-card:hover {
+            border-color: #007AFF;
+            box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+        }
+
+        .game-emoji {
+            font-size: 40px;
+            text-align: center;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
-        .modal-content h2 {
-            color: var(--text);
+        .game-card h3 {
+            color: #333;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .game-card p {
+            color: #666;
+            font-size: 12px;
+            margin: 0;
         }
 
         /* Challenge Card */
         .challenge-card {
             background: white;
-            color: var(--text);
+            color: #333;
             border-radius: 16px;
-            padding: clamp(24px, 6vw, 32px);
-            margin-bottom: 20px;
+            padding: 40px 24px;
+            margin: 24px 0;
+            width: 100%;
+            max-width: 300px;
             text-align: center;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             min-height: 280px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            gap: 16px;
         }
 
         .challenge-emoji {
-            font-size: clamp(48px, 12vw, 64px);
-            margin-bottom: 16px;
-        }
-
-        .challenge-type {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-light);
-            font-weight: 600;
-            margin-bottom: 12px;
+            font-size: 72px;
         }
 
         .challenge-text {
-            font-size: clamp(16px, 4vw, 18px);
+            font-size: 20px;
             font-weight: 600;
             line-height: 1.6;
-            color: var(--text);
         }
 
-        /* Card Display (Higher or Lower) */
+        /* Card Display */
         .card-display {
             background: white;
-            color: var(--text);
-            font-size: clamp(48px, 12vw, 72px);
+            color: #333;
+            font-size: 80px;
             font-weight: bold;
-            padding: clamp(32px, 6vw, 40px);
+            padding: 60px 40px;
             border-radius: 16px;
             text-align: center;
             margin: 24px 0;
-            width: 200px;
-            height: 200px;
-            max-width: 100%;
+            width: 100%;
+            max-width: 280px;
+            height: 280px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         /* Score Display */
         .score-display {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 12px;
-            padding: 16px;
-            margin: 16px 0;
-            backdrop-filter: blur(10px);
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
             text-align: center;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .score-value {
-            font-size: clamp(28px, 6vw, 36px);
+            font-size: 48px;
             font-weight: 800;
             color: white;
             margin-top: 8px;
         }
 
         /* Battleships Grid */
+        .grid-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
-            gap: 1px;
-            margin: 20px 0;
-            background: rgba(255,255,255,0.1);
-            padding: 8px;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
             border-radius: 8px;
             width: 100%;
-            max-width: 100%;
+            max-width: 320px;
             aspect-ratio: 1;
         }
 
         .grid-cell {
             width: 100%;
             aspect-ratio: 1;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -570,28 +473,30 @@
         }
 
         .grid-cell:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .grid-cell.ship {
-            background: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.4);
         }
 
         .grid-cell.hit {
-            background: #e74c3c;
+            background: #FF3B30;
         }
 
         .grid-cell.miss {
-            background: #95a5a6;
+            background: #A9A9A9;
         }
 
         /* Ship Palette */
         .ship-palette {
             margin: 20px 0;
             padding: 16px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 300px;
         }
 
         .ship-item {
@@ -600,7 +505,7 @@
             align-items: center;
             padding: 12px;
             margin-bottom: 8px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
         }
 
@@ -611,6 +516,7 @@
         .ship-name {
             font-weight: 600;
             font-size: 14px;
+            text-align: left;
         }
 
         .ship-size {
@@ -620,8 +526,8 @@
 
         .orientation-btn {
             padding: 6px 12px;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 6px;
             color: white;
             cursor: pointer;
@@ -630,20 +536,26 @@
         }
 
         .orientation-btn.active {
-            background: var(--secondary);
-            border-color: var(--secondary);
+            background: #34C759;
+            border-color: #34C759;
         }
 
         /* Leaderboard */
+        .leaderboard {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+        }
+
         .leaderboard-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: clamp(12px, 3vw, 16px);
+            padding: 16px;
             border-radius: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-weight: 600;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .leaderboard-item.gold {
@@ -662,74 +574,165 @@
         }
 
         .leaderboard-item.other {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
         }
 
         .leaderboard-medal {
-            font-size: 20px;
+            font-size: 24px;
             margin-right: 12px;
             min-width: 30px;
         }
 
         .leaderboard-name {
             flex: 1;
-            font-size: clamp(14px, 3vw, 16px);
+            text-align: left;
         }
 
         .leaderboard-score {
-            font-size: clamp(16px, 4vw, 20px);
+            font-size: 20px;
             font-weight: 800;
             min-width: 50px;
             text-align: right;
         }
 
-        /* Mobile Optimization */
-        @media (max-width: 480px) {
-            .btn {
-                font-size: 13px;
-                padding: 12px 16px;
-                min-height: 48px;
-            }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
 
-            .screen {
-                padding: clamp(16px, 4vw, 20px);
-            }
+        .modal.active {
+            display: flex;
+        }
 
-            .card {
-                padding: clamp(12px, 3vw, 16px);
-            }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
 
-            .game-card {
-                padding: 16px;
-            }
+        .modal-content h2 {
+            color: #333;
+        }
 
-            .status-bar {
-                font-size: 10px;
-                padding: 8px 12px;
-            }
+        .modal-content input {
+            background: white;
+            color: #333;
         }
 
         /* Info Box */
         .info-box {
-            background: rgba(255,255,255,0.15);
-            border-left: 4px solid rgba(255,255,255,0.5);
-            padding: clamp(12px, 3vw, 16px);
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid rgba(255, 255, 255, 0.5);
+            padding: 16px;
             border-radius: 8px;
-            margin: 16px 0;
-            font-size: 13px;
-            backdrop-filter: blur(10px);
+            margin: 20px 0;
+            font-size: 14px;
+            width: 100%;
+            max-width: 300px;
         }
 
-        .waiting-indicator {
-            display: inline-block;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
+        /* Settings Panel (Host Only) */
+        .settings-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .setting-item {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .setting-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .setting-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .setting-btn.active {
+            background: white;
+            color: #007AFF;
+        }
+
+        /* Spacing */
+        .spacer-sm { margin-bottom: 12px; }
+        .spacer-md { margin-bottom: 24px; }
+        .spacer-lg { margin-bottom: 40px; }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .btn {
+                max-width: 100%;
+            }
+
+            input {
+                max-width: 100%;
+            }
+
+            .card {
+                max-width: 100%;
+            }
+
+            .game-grid {
+                max-width: 100%;
+            }
+
+            .challenge-card {
+                max-width: 100%;
+            }
+
+            .card-display {
+                max-width: 100%;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            h2 {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
@@ -740,34 +743,35 @@
     </div>
 
     <div class="container">
-        <!-- HOME SCREEN - Code Entry First -->
-        <div id="homeScreen" class="screen active screen-gradient-1">
-            <div class="content">
-                <h1>🎮 Game Suite</h1>
-                <p style="text-align: center; margin-bottom: 32px;">Multiplayer Games • Real-Time Sync</p>
+        <!-- HOME SCREEN -->
+        <div id="homeScreen" class="screen active bg-home">
+            <div class="screen-center">
+                <h1>🎮</h1>
+                <h2>Game Suite</h2>
+                <p>Multiplayer Games</p>
+                
+                <div class="spacer-lg"></div>
 
-                <div class="card" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); color: white;">
-                    <div class="input-label" style="color: rgba(255,255,255,0.9);">Have a room code?</div>
-                    <input type="text" id="quickJoinCode" placeholder="Enter Code (e.g. A3K9P2)" maxlength="6" style="text-transform: uppercase; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); color: white;">
+                <div class="card" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); color: white;">
+                    <h3 style="color: white; margin-top: 0;">Have a Code?</h3>
+                    <input type="text" id="quickJoinCode" placeholder="Enter Code" maxlength="6" style="text-transform: uppercase; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); color: white; text-align: center;">
                     <button class="btn btn-secondary" onclick="quickJoinFlow()">Join Room</button>
                 </div>
 
-                <p style="text-align: center; color: rgba(255,255,255,0.8); margin: 20px 0; font-size: 13px;">OR</p>
+                <p style="margin: 20px 0; opacity: 0.8;">OR</p>
 
-                <button class="btn btn-secondary" onclick="showCreateRoom()">Create New Room</button>
+                <button class="btn btn-secondary" onclick="showCreateRoom()">Create Room</button>
             </div>
         </div>
 
         <!-- CREATE ROOM MODAL -->
         <div id="createModal" class="modal">
             <div class="modal-content">
-                <h2>Create Game Room</h2>
-                <div class="input-group">
-                    <label class="input-label">Your Name</label>
-                    <input type="text" id="hostName" placeholder="Enter your name" maxlength="20">
-                </div>
-                <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
-                <button class="btn btn-back" style="background: #e0e0e0; color: var(--text);" onclick="closeCreateModal()">Cancel</button>
+                <h2>Create Room</h2>
+                <p style="color: #666;">Enter your name</p>
+                <input type="text" id="hostName" placeholder="Your Name" maxlength="20">
+                <button class="btn btn-primary" onclick="createRoom()">Create</button>
+                <button class="btn btn-back" onclick="closeCreateModal()">Cancel</button>
             </div>
         </div>
 
@@ -775,196 +779,217 @@
         <div id="quickJoinModal" class="modal">
             <div class="modal-content">
                 <h2>Join Room</h2>
-                <div class="input-group">
-                    <label class="input-label">Your Name</label>
-                    <input type="text" id="quickJoinName" placeholder="Enter your name" maxlength="20">
-                </div>
+                <p style="color: #666;">Enter your name</p>
+                <input type="text" id="quickJoinName" placeholder="Your Name" maxlength="20">
                 <button class="btn btn-primary" onclick="quickJoinRoom()">Join</button>
-                <button class="btn btn-back" style="background: #e0e0e0; color: var(--text);" onclick="closeQuickJoinModal()">Cancel</button>
+                <button class="btn btn-back" onclick="closeQuickJoinModal()">Cancel</button>
             </div>
         </div>
 
         <!-- LOBBY SCREEN -->
-        <div id="lobbyScreen" class="screen screen-gradient-1">
-            <div class="content">
+        <div id="lobbyScreen" class="screen bg-lobby">
+            <div class="screen-center">
                 <h2>Welcome! 🎉</h2>
-                <p>Room ready for gameplay</p>
+                
+                <div class="spacer-md"></div>
 
                 <div class="room-code-box">
-                    <div class="room-code-label">Share This Code</div>
+                    <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px 0;">Share This Code</p>
                     <div class="room-code" id="displayCode">XXXXXX</div>
-                    <div class="room-code-copy">Friends can join with this code</div>
                 </div>
 
                 <div class="players-list">
-                    <div class="players-title">👥 Players in Room</div>
+                    <h3 style="color: white; margin-top: 0; margin-bottom: 12px;">👥 Players</h3>
                     <div id="playersList"></div>
                 </div>
 
-                <div class="info-box">
-                    <span class="waiting-indicator">⏳</span> Waiting for players to join...
-                </div>
+                <div class="info-box">⏳ Waiting for players to join...</div>
+
+                <div class="spacer-md"></div>
 
                 <button class="btn btn-success" onclick="proceedToGameSelector()">Select Game</button>
-                <button class="btn btn-danger" onclick="goToHome()">Leave Room</button>
+                <button class="btn btn-danger" onclick="goToHome()">Leave</button>
             </div>
         </div>
 
         <!-- GAME SELECTOR SCREEN -->
-        <div id="selectorScreen" class="screen screen-gradient-1">
-            <div class="content">
-                <h2>Choose a Game</h2>
-                <p style="text-align: center;">All players will play together</p>
+        <div id="selectorScreen" class="screen bg-select">
+            <div class="screen-center">
+                <h2>Choose Game</h2>
+                <p>All players will play together</p>
+
+                <div class="spacer-md"></div>
 
                 <div class="game-grid">
                     <div class="game-card" onclick="startGame('truthordare')">
-                        <h3>🎉 Truth or Dare</h3>
-                        <p>150+ Questions</p>
+                        <div class="game-emoji">🎉</div>
+                        <h3>Truth or Dare</h3>
+                        <p>Questions</p>
                     </div>
                     <div class="game-card" onclick="startGame('higherlower')">
-                        <h3>🃏 Higher/Lower</h3>
-                        <p>Card Game</p>
+                        <div class="game-emoji">🃏</div>
+                        <h3>Higher/Lower</h3>
+                        <p>Cards</p>
                     </div>
                     <div class="game-card" onclick="startGame('battleships')">
-                        <h3>⚓ Battleships</h3>
-                        <p>Strategy Game</p>
+                        <div class="game-emoji">⚓</div>
+                        <h3>Battleships</h3>
+                        <p>Strategy</p>
                     </div>
                     <div class="game-card" onclick="startGame('wordle')">
-                        <h3>🎮 Wordle</h3>
-                        <p>Word Game</p>
+                        <div class="game-emoji">🎮</div>
+                        <h3>Wordle</h3>
+                        <p>Words</p>
                     </div>
                 </div>
 
-                <button class="btn btn-back" onclick="goToLobby()">← Back to Lobby</button>
+                <div class="spacer-md"></div>
+
+                <button class="btn btn-back" onclick="goToLobby()">Back to Lobby</button>
             </div>
         </div>
 
         <!-- TRUTH OR DARE SCREEN -->
-        <div id="todScreen" class="screen screen-gradient-1">
-            <div class="content">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <p style="margin: 0; font-size: 12px;">Round <span id="roundNum">1</span> of <span id="totalRounds">5</span></p>
-                    <h3 style="margin: 8px 0 0 0; font-size: 16px;" id="difficultyLabel">Easy</h3>
-                </div>
+        <div id="todScreen" class="screen bg-tod">
+            <div class="screen-center">
+                <h2>🎭 Truth or Dare</h2>
+                <p>Round <span id="roundNum">1</span> of <span id="totalRounds">5</span></p>
+
+                <div class="spacer-md"></div>
 
                 <div class="challenge-card">
                     <div class="challenge-emoji" id="todEmoji">🎭</div>
-                    <p class="challenge-type" id="todType">Truth</p>
-                    <p class="challenge-text" id="todText">Loading challenge...</p>
+                    <p id="todType" style="margin: 0; font-size: 14px;">Truth</p>
+                    <p class="challenge-text" id="todText">Loading...</p>
                 </div>
 
-                <div class="btn-row">
-                    <button class="btn btn-success" onclick="completeChallenge()">✅ Done</button>
-                    <button class="btn btn-info" onclick="getChallenge()">🔄 Next</button>
-                </div>
+                <div class="spacer-md"></div>
 
-                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
+                <button class="btn btn-success" onclick="completeChallenge()">✅ Done</button>
+                <button class="btn btn-primary" onclick="getChallenge()">🔄 Next</button>
+
+                <div class="spacer-md"></div>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">Back</button>
             </div>
         </div>
 
         <!-- HIGHER OR LOWER SCREEN -->
-        <div id="holScreen" class="screen screen-gradient-2">
-            <div class="content">
+        <div id="holScreen" class="screen bg-hol">
+            <div class="screen-center">
                 <h2>🃏 Higher or Lower</h2>
 
+                <div class="spacer-md"></div>
+
                 <div class="score-display">
-                    <div style="font-size: 12px;">Your Score</div>
+                    <p style="margin: 0; font-size: 14px;">Your Score</p>
                     <div class="score-value" id="holYourScore">0</div>
                 </div>
 
+                <div class="spacer-md"></div>
+
                 <div class="card-display" id="cardDisplay">7♥</div>
 
-                <p style="text-align: center; color: rgba(255,255,255,0.9);">Is the next card higher or lower?</p>
+                <p style="font-size: 18px; font-weight: 600;">Next card higher or lower?</p>
 
-                <div class="btn-row">
-                    <button class="btn btn-primary" onclick="guessCard('higher')">📈 Higher</button>
-                    <button class="btn btn-primary" onclick="guessCard('lower')">📉 Lower</button>
-                </div>
+                <div class="spacer-md"></div>
 
-                <p id="cardResult" style="text-align: center; margin: 16px 0; font-size: 14px; min-height: 20px;"></p>
+                <button class="btn btn-primary" onclick="guessCard('higher')">📈 Higher</button>
+                <button class="btn btn-primary" onclick="guessCard('lower')">📉 Lower</button>
 
-                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
+                <p id="cardResult" style="margin: 16px 0; font-size: 16px; min-height: 20px;"></p>
+
+                <div class="spacer-md"></div>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">Back</button>
             </div>
         </div>
 
         <!-- BATTLESHIPS SCREEN -->
-        <div id="battleshipScreen" class="screen screen-gradient-3">
-            <div class="content">
+        <div id="battleshipScreen" class="screen bg-battle">
+            <div class="screen-center">
                 <h2>⚓ Battleships</h2>
-                <p style="text-align: center;">Place your ships on the grid</p>
+                <p>Place your 5 ships on the grid</p>
+
+                <div class="spacer-md"></div>
 
                 <div class="ship-palette">
                     <div id="shipsList"></div>
                 </div>
 
-                <div style="overflow-x: auto;">
+                <div class="grid-wrapper">
                     <div class="grid-container" id="battleshipGrid"></div>
                 </div>
 
-                <p style="text-align: center; font-size: 12px; opacity: 0.8; margin-top: 12px;">Click grid to place ships • Hold to rotate</p>
+                <p style="font-size: 12px; opacity: 0.8;">Click to place • Hold to rotate</p>
 
-                <div class="btn-row">
-                    <button class="btn btn-success" onclick="resetBattleships()">🔄 Reset</button>
-                    <button class="btn btn-success" onclick="startBattleships()">Ready!</button>
-                </div>
+                <div class="spacer-md"></div>
 
-                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
+                <button class="btn btn-success" onclick="startBattleships()">Ready!</button>
+                <button class="btn btn-danger" onclick="resetBattleships()">Reset</button>
+
+                <div class="spacer-md"></div>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">Back</button>
             </div>
         </div>
 
         <!-- WORDLE SCREEN -->
-        <div id="wordleScreen" class="screen screen-gradient-4">
-            <div class="content">
+        <div id="wordleScreen" class="screen bg-wordle">
+            <div class="screen-center">
                 <h2>🎮 Wordle</h2>
-                <p id="wordleStatus" style="text-align: center;">Set your secret word</p>
+                <p id="wordleStatus">Set your secret word</p>
+
+                <div class="spacer-md"></div>
 
                 <div class="card">
-                    <label class="input-label">5-Letter Word</label>
-                    <input type="text" id="wordleWord" placeholder="Enter word" maxlength="5" style="text-transform: uppercase;">
+                    <p style="color: #666; font-size: 14px; margin-top: 0;">5-Letter Word</p>
+                    <input type="text" id="wordleWord" placeholder="Word" maxlength="5" style="text-transform: uppercase;">
                     <button class="btn btn-success" onclick="submitWordleWord()">Set Word</button>
                 </div>
 
-                <div id="wordleGuesses"></div>
+                <div class="spacer-md"></div>
 
-                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
+                <button class="btn btn-back" onclick="returnToGameSelector()">Back</button>
             </div>
         </div>
 
         <!-- SCORES SCREEN -->
-        <div id="scoresScreen" class="screen screen-gradient-5">
-            <div class="content">
+        <div id="scoresScreen" class="screen bg-scores">
+            <div class="screen-center">
                 <h2>🏆 Final Scores</h2>
 
-                <div id="leaderboard" style="margin: 24px 0;"></div>
+                <div class="spacer-md"></div>
 
-                <button class="btn btn-success" onclick="returnToGameSelector()">🎮 Play Again</button>
-                <button class="btn btn-info" onclick="goToLobby()">👥 Back to Lobby</button>
-                <button class="btn btn-back" onclick="goToHome()">🏠 Home</button>
+                <div class="leaderboard" id="leaderboard"></div>
+
+                <div class="spacer-md"></div>
+
+                <button class="btn btn-primary" onclick="returnToGameSelector()">Play Again</button>
+                <button class="btn btn-secondary" style="background: white; color: #FF9500; border: 2px solid white;" onclick="goToLobby()">Back to Lobby</button>
+                <button class="btn btn-back" onclick="goToHome()">Home</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ============ GAME STATE ============
+        // ============ STATE ============
         let gameState = {
             roomCode: null,
             playerName: null,
             players: [],
             scores: {},
             gameMode: null,
-            isPlaying: false,
             isHost: false,
-            currentChallenge: null,
-            round: 1,
-            totalRounds: 5,
             holScore: 0,
-            battleshipShips: []
+            round: 1,
+            totalRounds: 5
         };
 
         let socket = null;
         let quickJoinCode = null;
 
-        // ============ SOCKET INITIALIZATION ============
+        // ============ SOCKET ============
         function initSocket() {
             if (socket) return;
             
@@ -986,7 +1011,7 @@
 
             socket.on('playerJoined', (data) => {
                 gameState.players = data.players;
-                gameState.scores = data.scores;
+                gameState.scores = data.scores || {};
                 updatePlayersList();
             });
 
@@ -1007,10 +1032,11 @@
 
             socket.on('cardGenerated', (data) => {
                 document.getElementById('cardDisplay').textContent = data.card;
+                document.getElementById('cardResult').textContent = '';
             });
 
             socket.on('cardGuessResult', (data) => {
-                const result = data.correct ? '✅ Correct! +10 pts' : '❌ Wrong! -10 pts';
+                const result = data.correct ? '✅ Correct! +10' : '❌ Wrong! -10';
                 document.getElementById('cardResult').textContent = result;
                 gameState.holScore = data.score || gameState.holScore;
                 document.getElementById('holYourScore').textContent = gameState.holScore;
@@ -1022,32 +1048,31 @@
             });
 
             socket.on('error', (msg) => {
-                alert('Error: ' + msg);
+                console.error('Error:', msg);
             });
         }
 
         function updateStatus(text, isOffline) {
-            const bar = document.getElementById('statusBar');
             document.getElementById('statusText').textContent = text;
+            const bar = document.getElementById('statusBar');
             if (isOffline) {
-                bar.classList.add('offline');
+                bar.style.background = '#FF3B30';
             } else {
-                bar.classList.remove('offline');
+                bar.style.background = '#34C759';
             }
         }
 
-        // ============ SCREEN NAVIGATION ============
+        // ============ NAVIGATION ============
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            window.scrollTo(0, 0);
         }
 
         function goToHome() {
             if (gameState.roomCode && socket) {
                 socket.emit('leaveRoom', { roomCode: gameState.roomCode, playerName: gameState.playerName });
             }
-            gameState = { roomCode: null, playerName: null, players: [], scores: {}, gameMode: null, isPlaying: false, isHost: false, holScore: 0 };
+            gameState = { roomCode: null, playerName: null, players: [], scores: {}, gameMode: null, isHost: false, holScore: 0, round: 1, totalRounds: 5 };
             showScreen('homeScreen');
         }
 
@@ -1063,11 +1088,11 @@
             showScreen('selectorScreen');
         }
 
-        // ============ QUICK JOIN FLOW ============
+        // ============ QUICK JOIN ============
         function quickJoinFlow() {
             const code = document.getElementById('quickJoinCode').value.toUpperCase().trim();
             if (!code || code.length !== 6) {
-                alert('Please enter a valid 6-character code');
+                alert('Enter 6-character code');
                 return;
             }
             quickJoinCode = code;
@@ -1077,13 +1102,12 @@
 
         function closeQuickJoinModal() {
             document.getElementById('quickJoinModal').classList.remove('active');
-            quickJoinCode = null;
         }
 
         function quickJoinRoom() {
             const name = document.getElementById('quickJoinName').value.trim();
             if (!name) {
-                alert('Please enter your name');
+                alert('Enter your name');
                 return;
             }
 
@@ -1109,11 +1133,8 @@
                     showScreen('lobbyScreen');
                     updatePlayersList();
                 } else {
-                    alert('Failed to join: ' + d.error);
+                    alert('Failed: ' + d.error);
                 }
-            })
-            .catch(err => {
-                alert('Error: ' + err.message);
             });
         }
 
@@ -1130,7 +1151,7 @@
         function createRoom() {
             const name = document.getElementById('hostName').value.trim();
             if (!name) {
-                alert('Please enter your name');
+                alert('Enter your name');
                 return;
             }
 
@@ -1157,21 +1178,15 @@
                     showScreen('lobbyScreen');
                     updatePlayersList();
                 }
-            })
-            .catch(err => alert('Error: ' + err));
+            });
         }
 
         function updatePlayersList() {
             const list = document.getElementById('playersList');
-            list.innerHTML = gameState.players.map(p => `
-                <div class="player-item">
-                    <span class="player-badge"></span>
-                    <span>${p}</span>
-                </div>
-            `).join('');
+            list.innerHTML = gameState.players.map(p => `<div class="player-item">✅ ${p}</div>`).join('');
         }
 
-        // ============ GAME SELECTION ============
+        // ============ GAMES ============
         function startGame(mode) {
             if (!socket || !gameState.roomCode) return;
             socket.emit('selectGameMode', { roomCode: gameState.roomCode, gameMode: mode });
@@ -1187,7 +1202,7 @@
                 socket.emit('generateCard', { roomCode: gameState.roomCode });
                 showScreen('holScreen');
             } else if (mode === 'battleships') {
-                initializeBattleships();
+                initBattleships();
                 showScreen('battleshipScreen');
             } else if (mode === 'wordle') {
                 showScreen('wordleScreen');
@@ -1206,8 +1221,7 @@
                 socket.emit('completeChallenge', {
                     roomCode: gameState.roomCode,
                     playerName: gameState.playerName,
-                    points: 25,
-                    completedByName: gameState.playerName
+                    points: 25
                 });
             }
         }
@@ -1224,7 +1238,7 @@
         }
 
         // ============ BATTLESHIPS ============
-        let battleshipState = {
+        let battleState = {
             ships: [
                 { name: 'Carrier', size: 5, horizontal: true, placed: false },
                 { name: 'Battleship', size: 4, horizontal: true, placed: false },
@@ -1235,19 +1249,18 @@
             grid: Array(100).fill(0)
         };
 
-        function initializeBattleships() {
-            generateBattleshipGrid();
+        function initBattleships() {
+            generateGrid();
             updateShipPalette();
         }
 
-        function generateBattleshipGrid() {
+        function generateGrid() {
             const grid = document.getElementById('battleshipGrid');
             grid.innerHTML = '';
             for (let i = 0; i < 100; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
                 cell.id = `cell-${i}`;
-                cell.textContent = (i % 10) + 1;
                 cell.onclick = () => placeShip(i);
                 grid.appendChild(cell);
             }
@@ -1255,62 +1268,52 @@
 
         function updateShipPalette() {
             const list = document.getElementById('shipsList');
-            list.innerHTML = battleshipState.ships.map((ship, idx) => `
+            list.innerHTML = battleState.ships.map((ship, idx) => `
                 <div class="ship-item">
                     <div>
                         <div class="ship-name">${ship.name}</div>
                         <div class="ship-size">${ship.size} cells</div>
                     </div>
                     <button class="orientation-btn ${ship.horizontal ? 'active' : ''}" onclick="toggleOrientation(${idx})">
-                        ${ship.horizontal ? '→ Horizontal' : '↓ Vertical'}
+                        ${ship.horizontal ? '→' : '↓'}
                     </button>
                 </div>
             `).join('');
         }
 
-        function toggleOrientation(shipIdx) {
-            battleshipState.ships[shipIdx].horizontal = !battleshipState.ships[shipIdx].horizontal;
+        function toggleOrientation(idx) {
+            battleState.ships[idx].horizontal = !battleState.ships[idx].horizontal;
             updateShipPalette();
         }
 
-        function placeShip(cellIndex) {
-            // Find first unplaced ship
-            const ship = battleshipState.ships.find(s => !s.placed);
-            if (!ship) {
-                alert('All ships placed!');
-                return;
-            }
+        function placeShip(cellIdx) {
+            const ship = battleState.ships.find(s => !s.placed);
+            if (!ship) return;
 
-            const row = Math.floor(cellIndex / 10);
-            const col = cellIndex % 10;
+            const row = Math.floor(cellIdx / 10);
+            const col = cellIdx % 10;
 
-            // Validate placement
             if (ship.horizontal && col + ship.size > 10) {
-                alert('Ship too close to edge!');
+                alert('Too close to edge');
                 return;
             }
             if (!ship.horizontal && row + ship.size > 10) {
-                alert('Ship too close to edge!');
+                alert('Too close to edge');
                 return;
             }
 
-            // Place ship
             for (let i = 0; i < ship.size; i++) {
-                const idx = ship.horizontal ? cellIndex + i : cellIndex + (i * 10);
-                battleshipState.grid[idx] = 1;
+                const idx = ship.horizontal ? cellIdx + i : cellIdx + (i * 10);
+                battleState.grid[idx] = 1;
                 document.getElementById(`cell-${idx}`).classList.add('ship');
             }
 
             ship.placed = true;
             updateShipPalette();
-
-            if (battleshipState.ships.every(s => s.placed)) {
-                document.querySelector('#battleshipScreen .btn-success:last-of-type').textContent = '✅ Ready!';
-            }
         }
 
         function resetBattleships() {
-            battleshipState = {
+            battleState = {
                 ships: [
                     { name: 'Carrier', size: 5, horizontal: true, placed: false },
                     { name: 'Battleship', size: 4, horizontal: true, placed: false },
@@ -1320,11 +1323,11 @@
                 ],
                 grid: Array(100).fill(0)
             };
-            initializeBattleships();
+            initBattleships();
         }
 
         function startBattleships() {
-            if (!battleshipState.ships.every(s => s.placed)) {
+            if (!battleState.ships.every(s => s.placed)) {
                 alert('Place all ships first!');
                 return;
             }
@@ -1333,11 +1336,7 @@
                 socket.emit('placeBattleships', {
                     roomCode: gameState.roomCode,
                     playerName: gameState.playerName,
-                    ships: battleshipState.ships.map(s => ({
-                        name: s.name,
-                        size: s.size,
-                        horizontal: s.horizontal
-                    }))
+                    ships: battleState.ships.map(s => ({ name: s.name, size: s.size, horizontal: s.horizontal }))
                 });
             }
         }
@@ -1346,7 +1345,7 @@
         function submitWordleWord() {
             const word = document.getElementById('wordleWord').value.toUpperCase().trim();
             if (word.length !== 5) {
-                alert('Word must be 5 letters');
+                alert('5 letters only');
                 return;
             }
 
@@ -1356,8 +1355,7 @@
                     playerName: gameState.playerName,
                     word: word
                 });
-                document.getElementById('wordleStatus').textContent = '✅ Word set! Waiting for others...';
-                document.getElementById('wordleWord').disabled = true;
+                document.getElementById('wordleStatus').textContent = '✅ Word set!';
             }
         }
 
@@ -1379,11 +1377,6 @@
                 `;
             }).join('');
         }
-
-        // ============ INITIALIZATION ============
-        window.addEventListener('load', () => {
-            console.log('Game Suite loaded');
-        });
     </script>
 </body>
 </html>
