@@ -49,7 +49,6 @@
             flex-direction: column;
         }
 
-        /* Status Bar */
         .status-bar {
             position: fixed;
             top: 12px;
@@ -71,6 +70,12 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
+        }
+
+        @keyframes wildcard-pop {
+            0% { transform: scale(0.5) rotateZ(-5deg); opacity: 0; }
+            50% { transform: scale(1.1) rotateZ(2deg); }
+            100% { transform: scale(1) rotateZ(0deg); opacity: 1; }
         }
 
         /* Menu Screen */
@@ -245,7 +250,7 @@
             margin-bottom: 14px;
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="number"] {
             flex: 1;
             padding: clamp(12px, 3vw, 14px);
             border-radius: 10px;
@@ -253,7 +258,7 @@
             font-size: clamp(14px, 3.5vw, 16px);
         }
 
-        input[type="text"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -269,6 +274,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin-bottom: 16px;
         }
 
         .difficulty-btn {
@@ -303,6 +309,36 @@
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
             color: white;
         }
+        .difficulty-btn.drinking { 
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); 
+            color: white;
+        }
+
+        .rounds-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: space-around;
+            margin-bottom: 16px;
+        }
+
+        .round-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e8ecf1;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            background: white;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .round-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
 
         /* Playing Screen */
         .playing-screen {
@@ -335,13 +371,23 @@
             margin-bottom: 20px;
             text-align: center;
             box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            min-height: 300px;
+            min-height: 320px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        .player-name {
+        .challenge-card.wildcard {
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+            animation: wildcard-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .challenge-card.wildcard .challenge-text {
+            color: white;
+        }
+
+        .answering-player {
             color: #667eea;
             margin: 0 0 14px 0;
             font-size: clamp(12px, 3.5vw, 14px);
@@ -368,6 +414,14 @@
 
         .challenge-type.intimate {
             background: linear-gradient(135deg, #d946ef 0%, #a21caf 100%);
+        }
+
+        .challenge-type.drinking {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .challenge-type.wildcard {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
 
         .challenge-emoji {
@@ -598,12 +652,24 @@
                 </div>
 
                 <div class="card">
+                    <p class="section-title">🎮 Rounds</p>
+                    <div class="rounds-selector">
+                        <div class="round-option" onclick="setRounds(3)">3</div>
+                        <div class="round-option" onclick="setRounds(5)">5</div>
+                        <div class="round-option selected" onclick="setRounds(10)">10</div>
+                        <div class="round-option" onclick="setRounds(20)">20</div>
+                    </div>
+                </div>
+
+                <div class="card">
                     <p class="section-title">⚙️ Difficulty Levels</p>
                     <div class="difficulty-grid">
                         <button class="difficulty-btn easy" onclick="toggleDifficulty('easy')">Easy</button>
                         <button class="difficulty-btn medium" onclick="toggleDifficulty('medium')">Medium</button>
                         <button class="difficulty-btn hard" onclick="toggleDifficulty('hard')">Hard</button>
                         <button class="difficulty-btn intimate" onclick="toggleDifficulty('intimate')">Spicy 🔥</button>
+                        <button class="difficulty-btn drinking" onclick="toggleDifficulty('drinking')">Drinking 🍺</button>
+                        <button class="difficulty-btn warning" onclick="toggleWildcards()" id="wildcardBtn">Wildcards 🎰</button>
                     </div>
                 </div>
 
@@ -636,12 +702,12 @@
         <div id="playingScreen" class="screen playing-screen">
             <div class="playing-content">
                 <div class="header-row">
-                    <span id="roundInfo">Round 1</span>
+                    <span id="roundInfo">Round 1 / 5</span>
                     <button class="btn-warning" onclick="showScores()" style="width: auto; padding: 8px 12px; min-height: auto; border-radius: 8px;">🏆</button>
                 </div>
 
-                <div class="challenge-card">
-                    <p class="player-name" id="currentPlayer"></p>
+                <div class="challenge-card" id="challengeCard">
+                    <p class="answering-player" id="answeringPlayer"></p>
                     <div class="challenge-type" id="challengeType"></div>
                     <div class="challenge-emoji" id="challengeEmoji"></div>
                     <p class="challenge-text" id="challengeText"></p>
@@ -685,134 +751,6 @@
     </div>
 
     <script>
-        // ===== CHALLENGES DATABASE =====
-        const challenges = {
-            truth: {
-                easy: [
-                    { text: "What's your biggest pet peeve?", emoji: "😤" },
-                    { text: "What's the weirdest thing you've eaten?", emoji: "🤪" },
-                    { text: "What's your guiltiest pleasure?", emoji: "📺" },
-                    { text: "Who's your celebrity crush?", emoji: "⭐" },
-                    { text: "What's the most childish thing you still do?", emoji: "🧸" },
-                    { text: "When was the last time you cried?", emoji: "😭" },
-                    { text: "What's your most embarrassing moment?", emoji: "😳" },
-                    { text: "Have you ever lied to your best friend?", emoji: "🤥" },
-                    { text: "What's your most irrational fear?", emoji: "😨" },
-                    { text: "What's something you're secretly proud of?", emoji: "🎯" },
-                    { text: "What's something you've never told anyone?", emoji: "🤐" },
-                    { text: "If you could have any superpower?", emoji: "⚡" },
-                ],
-                medium: [
-                    { text: "Have you ever ghosted someone?", emoji: "👻" },
-                    { text: "What's your hottest take everyone disagrees with?", emoji: "🔥" },
-                    { text: "What's the worst date you've been on?", emoji: "😬" },
-                    { text: "What's something you deeply regret?", emoji: "😔" },
-                    { text: "Have you ever betrayed someone's trust?", emoji: "💔" },
-                    { text: "What's the biggest lie you've told?", emoji: "🤭" },
-                    { text: "Have you had feelings for someone here?", emoji: "💕" },
-                    { text: "What's something about yourself you hate?", emoji: "😖" },
-                    { text: "Have you done something you're ashamed of?", emoji: "😰" },
-                    { text: "Who do you secretly have a crush on?", emoji: "💘" },
-                    { text: "What's the most selfish thing you've done?", emoji: "😈" },
-                    { text: "Have you ever cheated on someone?", emoji: "💔" },
-                    { text: "What's your biggest insecurity?", emoji: "😟" },
-                    { text: "Who in this room are you judging most?", emoji: "🤨" },
-                ],
-                hard: [
-                    { text: "What would you do if nobody found out?", emoji: "🤔" },
-                    { text: "Who in this room do you find most attractive?", emoji: "😍" },
-                    { text: "Have you stolen something?", emoji: "🚨" },
-                    { text: "What's something your family doesn't know?", emoji: "🙈" },
-                    { text: "Have you been unfaithful?", emoji: "💔" },
-                    { text: "What's your dirtiest secret?", emoji: "🤐" },
-                    { text: "Would you cheat if nobody would find out?", emoji: "🤥" },
-                    { text: "Have you wished bad on someone?", emoji: "🤫" },
-                    { text: "What's the worst thing you've said about someone here?", emoji: "😬" },
-                    { text: "Do you think anyone here isn't good enough?", emoji: "🤨" },
-                    { text: "What makes you deeply ashamed?", emoji: "😳" },
-                ],
-                intimate: [
-                    { text: "What's your wildest fantasy?", emoji: "🔥" },
-                    { text: "Who here have you thought about sexually?", emoji: "💕" },
-                    { text: "What's the kinkiest thing you've done?", emoji: "😱" },
-                    { text: "Have you had a one-night stand?", emoji: "🌙" },
-                    { text: "What's your biggest turn-on?", emoji: "🥵" },
-                    { text: "What's the hottest sexual moment you've had?", emoji: "🔥" },
-                    { text: "What sexual thing are you curious about?", emoji: "❓" },
-                    { text: "Who here would you sleep with if single?", emoji: "💭" },
-                    { text: "What's your most embarrassing sexual moment?", emoji: "😳" },
-                    { text: "What's your favorite position and why?", emoji: "😈" },
-                    { text: "Do you prefer morning or night intimacy?", emoji: "🌅" },
-                    { text: "What have you faked enjoying sexually?", emoji: "🤥" },
-                    { text: "Have you watched adult content this week?", emoji: "📺" },
-                    { text: "Have you been unfaithful during a relationship?", emoji: "💔" },
-                    { text: "What's something you want sexually but fear asking?", emoji: "🤐" },
-                ]
-            },
-            dare: {
-                easy: [
-                    { text: "Do a funny impression of someone here", emoji: "🎭" },
-                    { text: "Sing your favorite song chorus loudly", emoji: "🎤" },
-                    { text: "Do 15 push-ups or squats", emoji: "💪" },
-                    { text: "Do your silliest dance move for 30 seconds", emoji: "💃" },
-                    { text: "Speak in a funny accent for the next 3 turns", emoji: "🗣️" },
-                    { text: "Give someone here a genuine compliment", emoji: "👍" },
-                    { text: "Make the saddest face possible", emoji: "😢" },
-                    { text: "Tell your best joke to the group", emoji: "😂" },
-                    { text: "Show your most unflattering photo", emoji: "📸" },
-                    { text: "Attempt a cartwheel or try really hard", emoji: "🤸" },
-                ],
-                medium: [
-                    { text: "Text your crush something flirty", emoji: "💬" },
-                    { text: "Do 50 jumping jacks while singing Happy Birthday", emoji: "😈" },
-                    { text: "Go outside and do 3 cartwheels", emoji: "🏃" },
-                    { text: "Let someone scroll through your phone for 2 min", emoji: "📱" },
-                    { text: "Write a funny poem about someone and read it", emoji: "📝" },
-                    { text: "Do a runway walk as seductively as possible", emoji: "🚶" },
-                    { text: "Rank everyone here by attractiveness honestly", emoji: "⭐" },
-                    { text: "Propose to someone here dramatically", emoji: "💍" },
-                    { text: "Do impressions of everyone in the room", emoji: "🎬" },
-                    { text: "Eat a spicy snack and react honestly", emoji: "🌶️" },
-                    { text: "Twerk for 20 seconds in front of everyone", emoji: "🍑" },
-                    { text: "Roleplay being arrested and call someone as a joke", emoji: "☎️" },
-                ],
-                hard: [
-                    { text: "Record yourself crying (real or acted)", emoji: "😭" },
-                    { text: "Tell the group your biggest secret", emoji: "🗣️" },
-                    { text: "Tell someone here something real you held back", emoji: "💬" },
-                    { text: "Kiss the person to your right on the cheek", emoji: "😘" },
-                    { text: "Send a risky text to someone and show it", emoji: "⚠️" },
-                    { text: "Dance alone in front of everyone for 1 minute", emoji: "🎉" },
-                    { text: "Attempt a backflip or impressive physical feat", emoji: "🤸" },
-                    { text: "Scream your crush's name out loud", emoji: "📣" },
-                    { text: "Let someone style your hair however they want", emoji: "💇" },
-                    { text: "Remove clothing and wear it as a hat", emoji: "🎩" },
-                    { text: "Do 20 push-ups shirtless", emoji: "💪" },
-                    { text: "Post your worst selfie on your story", emoji: "🤳" },
-                ],
-                intimate: [
-                    { text: "Passionately kiss someone for 10 seconds", emoji: "💋" },
-                    { text: "Give someone a lap dance to a song", emoji: "🔥" },
-                    { text: "Send a shirtless/sexy selfie", emoji: "📸" },
-                    { text: "Roleplay kissing a celebrity in front of everyone", emoji: "👫" },
-                    { text: "Give someone a sensual body massage", emoji: "💆" },
-                    { text: "Strip to your underwear and slow dance", emoji: "🔥" },
-                    { text: "Let someone kiss you anywhere they choose", emoji: "💋" },
-                    { text: "Do a slow sensual striptease to a song", emoji: "🎶" },
-                    { text: "Take a shirtless/sexy photo with someone", emoji: "📷" },
-                    { text: "Make out with someone for as long as you can", emoji: "😍" },
-                    { text: "Give someone a full body sensual massage", emoji: "🤫" },
-                    { text: "Describe your ideal sexual partner in detail", emoji: "😏" },
-                    { text: "Whisper your dirtiest thought to someone's ear", emoji: "👂" },
-                    { text: "Slow dance intimately with someone for 2 songs", emoji: "💕" },
-                    { text: "Sit on someone's lap making intense eye contact", emoji: "👀" },
-                    { text: "Do body shots with someone", emoji: "🍻" },
-                    { text: "Kiss every person in the room on the lips", emoji: "💋" },
-                    { text: "Give someone a lap dance", emoji: "🔥" },
-                ]
-            }
-        };
-
         // ===== GAME STATE =====
         let gameState = {
             roomCode: null,
@@ -821,8 +759,10 @@
             scores: {},
             currentPlayerIndex: 0,
             round: 1,
+            totalRounds: 10,
             currentChallenge: null,
-            selectedDifficulties: { easy: true, medium: true, hard: true, intimate: true },
+            selectedDifficulties: { easy: true, medium: true, hard: true, intimate: true, drinking: true },
+            includeWildcards: false,
             isHost: false,
             isPlaying: false
         };
@@ -840,12 +780,10 @@
             });
 
             socket.on('connect', () => {
-                console.log('Connected to server');
                 updateStatus('🟢 Connected', false);
             });
 
             socket.on('disconnect', () => {
-                console.log('Disconnected from server');
                 updateStatus('🔴 Disconnected', true);
             });
 
@@ -854,6 +792,7 @@
                 gameState.scores = data.scores;
                 gameState.currentPlayerIndex = data.currentPlayerIndex;
                 gameState.round = data.round;
+                gameState.totalRounds = data.totalRounds;
                 updatePlayerDisplay();
             });
 
@@ -863,14 +802,23 @@
                 gameState.isPlaying = true;
                 gameState.currentPlayerIndex = 0;
                 gameState.round = 1;
-                pickChallenge();
+                getChallenge();
                 showScreen('playingScreen');
+            });
+
+            socket.on('challengeGenerated', (data) => {
+                gameState.currentChallenge = data.challenge;
+                gameState.currentPlayerIndex = data.currentPlayerIndex;
+                gameState.round = data.round;
+                gameState.totalRounds = data.totalRounds;
+                updatePlayingDisplay();
             });
 
             socket.on('nextPlayer', (data) => {
                 gameState.currentPlayerIndex = data.currentPlayerIndex;
                 gameState.round = data.round;
-                pickChallenge();
+                gameState.totalRounds = data.totalRounds;
+                getChallenge();
             });
 
             socket.on('scoreUpdated', (data) => {
@@ -882,6 +830,11 @@
                 gameState.players = data.players;
                 gameState.scores = data.scores;
                 updatePlayerDisplay();
+            });
+
+            socket.on('gameEnded', (data) => {
+                gameState.scores = data.scores;
+                showScreen('scoresScreen');
             });
 
             socket.on('error', (message) => {
@@ -910,7 +863,7 @@
             if (gameState.roomCode && socket) {
                 socket.emit('leaveRoom', { roomCode: gameState.roomCode, playerName: gameState.playerName });
             }
-            gameState = { roomCode: null, playerName: null, players: [], scores: {}, currentPlayerIndex: 0, round: 1, currentChallenge: null, selectedDifficulties: { easy: true, medium: true, hard: true, intimate: true }, isHost: false, isPlaying: false };
+            gameState = { roomCode: null, playerName: null, players: [], scores: {}, currentPlayerIndex: 0, round: 1, totalRounds: 10, currentChallenge: null, selectedDifficulties: { easy: true, medium: true, hard: true, intimate: true, drinking: true }, includeWildcards: false, isHost: false, isPlaying: false };
             showScreen('menuScreen');
         }
 
@@ -925,9 +878,8 @@
             gameState.isHost = true;
             gameState.players = [];
             gameState.scores = {};
-            gameState.selectedDifficulties = { easy: true, medium: true, hard: true, intimate: true };
+            gameState.selectedDifficulties = { easy: true, medium: true, hard: true, intimate: true, drinking: true };
             
-            // Create room on server
             fetch('/api/rooms/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -984,6 +936,7 @@
                     gameState.players = d.room.players;
                     gameState.scores = Object.fromEntries(d.room.players.map(p => [p, 0]));
                     gameState.selectedDifficulties = d.room.selectedDifficulties;
+                    gameState.totalRounds = d.room.totalRounds;
                     gameState.isHost = false;
                     
                     closeJoinModal();
@@ -1047,6 +1000,17 @@
             updatePlayerDisplay();
         }
 
+        // ===== ROUNDS =====
+        function setRounds(num) {
+            gameState.totalRounds = num;
+            document.querySelectorAll('.round-option').forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            if (socket && gameState.roomCode) {
+                socket.emit('setRounds', { roomCode: gameState.roomCode, totalRounds: num });
+            }
+        }
+
         // ===== DIFFICULTY =====
         function toggleDifficulty(level) {
             gameState.selectedDifficulties[level] = !gameState.selectedDifficulties[level];
@@ -1057,10 +1021,27 @@
             }
         }
 
+        function toggleWildcards() {
+            gameState.includeWildcards = !gameState.includeWildcards;
+            const btn = document.getElementById('wildcardBtn');
+            if (gameState.includeWildcards) {
+                btn.classList.add('warning');
+                btn.style.background = '#f39c12';
+            } else {
+                btn.classList.remove('warning');
+                btn.style.background = '';
+            }
+        }
+
         function updateDifficultyButtons() {
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
                 const text = btn.innerText.toLowerCase();
-                const level = text.includes('easy') ? 'easy' : text.includes('medium') ? 'medium' : text.includes('hard') ? 'hard' : 'intimate';
+                let level = 'easy';
+                if (text.includes('medium')) level = 'medium';
+                else if (text.includes('hard')) level = 'hard';
+                else if (text.includes('spicy')) level = 'intimate';
+                else if (text.includes('drinking')) level = 'drinking';
+                else if (text.includes('wildcard')) return;
                 
                 btn.className = 'difficulty-btn';
                 btn.classList.add(gameState.selectedDifficulties[level] ? level : 'inactive');
@@ -1076,13 +1057,6 @@
             
             if (socket && gameState.roomCode) {
                 socket.emit('startGame', { roomCode: gameState.roomCode });
-            } else {
-                // Fallback for non-multiplayer
-                gameState.isPlaying = true;
-                gameState.currentPlayerIndex = 0;
-                gameState.round = 1;
-                pickChallenge();
-                showScreen('playingScreen');
             }
         }
 
@@ -1090,69 +1064,60 @@
             startGame();
         }
 
-        function pickChallenge() {
-            const activeDifficulties = Object.keys(gameState.selectedDifficulties)
-                .filter(d => gameState.selectedDifficulties[d]);
-            const randomDifficulty = activeDifficulties[Math.floor(Math.random() * activeDifficulties.length)];
-            const isTruth = Math.random() > 0.5;
-            const categoryList = isTruth ? challenges.truth[randomDifficulty] : challenges.dare[randomDifficulty];
-            const challenge = categoryList[Math.floor(Math.random() * categoryList.length)];
-
-            gameState.currentChallenge = {
-                ...challenge,
-                type: isTruth ? 'Truth' : 'Dare',
-                difficulty: randomDifficulty
-            };
-
-            updatePlayingDisplay();
+        function getChallenge() {
+            if (socket && gameState.roomCode) {
+                socket.emit('getChallenge', { roomCode: gameState.roomCode });
+            }
         }
 
         function updatePlayingDisplay() {
             const player = gameState.players[gameState.currentPlayerIndex];
-            document.getElementById('currentPlayer').textContent = player;
-            document.getElementById('roundInfo').textContent = `Round ${gameState.round} • ${gameState.currentPlayerIndex + 1}/${gameState.players.length}`;
+            document.getElementById('answeringPlayer').textContent = `${player} is answering!`;
+            document.getElementById('roundInfo').textContent = `Round ${gameState.round} / ${gameState.totalRounds}`;
 
             const typeDiv = document.getElementById('challengeType');
             typeDiv.textContent = `${gameState.currentChallenge.type} • ${gameState.currentChallenge.difficulty.toUpperCase()}`;
-            typeDiv.className = gameState.currentChallenge.type === 'Truth' ? 'challenge-type' : gameState.currentChallenge.difficulty === 'intimate' ? 'challenge-type intimate' : 'challenge-type dare';
+            
+            const card = document.getElementById('challengeCard');
+            card.className = 'challenge-card';
+            
+            if (gameState.currentChallenge.type === 'Dare') {
+                typeDiv.classList.add('dare');
+            } else if (gameState.currentChallenge.difficulty === 'intimate') {
+                typeDiv.classList.add('intimate');
+            } else if (gameState.currentChallenge.difficulty === 'drinking') {
+                typeDiv.classList.add('drinking');
+            }
+
+            if (gameState.currentChallenge.isWildcard) {
+                card.classList.add('wildcard');
+                typeDiv.classList.add('wildcard');
+            }
 
             document.getElementById('challengeEmoji').textContent = gameState.currentChallenge.emoji;
             document.getElementById('challengeText').textContent = gameState.currentChallenge.text;
 
-            const pointsMap = { easy: 10, medium: 25, hard: 50, intimate: 100 };
-            document.getElementById('points').textContent = `+${pointsMap[gameState.currentChallenge.difficulty]} pts`;
+            const pointsMap = { easy: 10, medium: 25, hard: 50, intimate: 100, drinking: 15, wildcard: 50 };
+            document.getElementById('points').textContent = `+${pointsMap[gameState.currentChallenge.difficulty || 'wildcard']} pts`;
         }
 
         function completeChallenge() {
-            const pointsMap = { easy: 10, medium: 25, hard: 50, intimate: 100 };
+            const pointsMap = { easy: 10, medium: 25, hard: 50, intimate: 100, drinking: 15, wildcard: 50 };
             const player = gameState.players[gameState.currentPlayerIndex];
             
             if (socket && gameState.roomCode) {
-                socket.emit('completeChallenge', { roomCode: gameState.roomCode, playerName: player, points: pointsMap[gameState.currentChallenge.difficulty] });
-            } else {
-                gameState.scores[player] = (gameState.scores[player] || 0) + pointsMap[gameState.currentChallenge.difficulty];
-                nextPlayer();
+                socket.emit('completeChallenge', { roomCode: gameState.roomCode, playerName: player, points: pointsMap[gameState.currentChallenge.difficulty || 'wildcard'] });
             }
         }
 
         function differentChallenge() {
-            pickChallenge();
+            getChallenge();
         }
 
         function skipChallenge() {
             if (socket && gameState.roomCode) {
                 socket.emit('skipChallenge', { roomCode: gameState.roomCode });
-            } else {
-                nextPlayer();
             }
-        }
-
-        function nextPlayer() {
-            gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
-            if (gameState.currentPlayerIndex === 0) {
-                gameState.round++;
-            }
-            pickChallenge();
         }
 
         function showScores() {
@@ -1181,6 +1146,7 @@
         // ===== INIT =====
         initSocket();
         updateDifficultyButtons();
+        setRounds(10);
     </script>
 </body>
 </html>
