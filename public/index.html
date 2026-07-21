@@ -13,23 +13,34 @@
         body { background: #f5f7fa; position: fixed; left: 0; top: 0; overflow: hidden; }
 
         .container { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
-        .screen { display: none; width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
+        .screen { 
+            display: none; 
+            width: 100%; 
+            height: 100%; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+            flex: 1;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
         .screen.active { display: flex; flex-direction: column; }
 
         .status-bar {
             position: fixed;
             top: 12px;
             right: 12px;
-            padding: 8px 14px;
+            padding: 10px 16px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             background: #2ecc71;
             color: white;
             z-index: 999;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        .status-bar.offline {
+        .status-bar.offline { 
             background: #e74c3c;
             animation: pulse 1s infinite;
         }
@@ -39,19 +50,9 @@
             50% { opacity: 0.7; }
         }
 
-        /* UNIVERSAL STYLES */
-        .screen {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            align-items: center;
-            justify-content: center;
-        }
-
         .content {
             width: 100%;
             max-width: 500px;
-            margin: 0 auto;
             text-align: center;
         }
 
@@ -59,6 +60,19 @@
             font-size: clamp(32px, 10vw, 48px);
             margin-bottom: 20px;
             font-weight: 800;
+        }
+
+        h2 {
+            font-size: clamp(24px, 8vw, 36px);
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            line-height: 1.5;
         }
 
         button {
@@ -79,7 +93,7 @@
         }
 
         button:active { transform: scale(0.95); }
-        button:disabled { opacity: 0.5; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .btn-primary { background: white; color: #667eea; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .btn-secondary { background: rgba(255,255,255,0.95); color: #667eea; }
@@ -102,25 +116,44 @@
         input::placeholder { color: rgba(255,255,255,0.6); }
         input:focus { outline: none; border-color: white; background: rgba(255,255,255,0.15); }
 
-        .button-row {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-            margin-bottom: 12px;
+        .menu-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .lobby-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .selector-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; overflow-y: auto; }
+        .tod-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .hol-screen { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; }
+        .battleship-screen { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
+        .wordle-screen { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; }
+        .scores-screen { background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%); color: white; overflow-y: auto; }
+
+        .room-code-box {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
         }
 
-        .button-row button {
-            flex: 1;
-            margin-bottom: 0;
+        .room-code-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 8px;
         }
 
-        /* Menu Screen */
-        .menu-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .room-code {
+            font-size: 42px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
 
-        /* Game Selector Screen */
-        .selector-screen {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow-y: auto;
+        .room-code-copy {
+            font-size: 12px;
+            margin-top: 8px;
+            opacity: 0.7;
         }
 
         .game-option {
@@ -140,14 +173,7 @@
 
         .game-option:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .game-option h3 { font-size: 20px; margin-bottom: 8px; }
-        .game-option p { font-size: 14px; opacity: 0.7; }
-
-        /* Truth or Dare Screen */
-        .tod-screen {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            justify-content: flex-start;
-            padding-top: 40px;
-        }
+        .game-option p { font-size: 14px; opacity: 0.7; margin: 0; }
 
         .challenge-card {
             background: white;
@@ -157,17 +183,15 @@
             margin-bottom: 20px;
             text-align: center;
             box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            min-height: 320px;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        .challenge-emoji { font-size: clamp(48px, 15vw, 64px); margin: 16px 0; }
+        .challenge-emoji { font-size: 64px; margin: 16px 0; }
         .challenge-text { font-size: clamp(16px, 4.5vw, 20px); font-weight: 600; margin: 16px 0; line-height: 1.6; }
 
-        /* Higher or Lower Screen */
-        .hol-screen { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
         .card-display {
             background: white;
             color: #333;
@@ -177,7 +201,6 @@
             border-radius: 16px;
             text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             width: 200px;
             height: 200px;
             display: flex;
@@ -187,8 +210,18 @@
             margin-right: auto;
         }
 
-        /* Battleships Screen */
-        .battleship-screen { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .button-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .button-row button {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
@@ -217,59 +250,11 @@
         }
 
         .grid-cell:hover { background: #1a5f8f; }
-        .grid-cell.ship { background: #34495e; }
         .grid-cell.hit { background: #e74c3c; }
         .grid-cell.miss { background: #95a5a6; }
 
-        /* Wordle Screen */
-        .wordle-screen { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
-        .guess-input {
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid white;
-            font-size: 16px;
-            text-transform: uppercase;
-            width: 100%;
-            margin-bottom: 12px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .guess-input::placeholder { color: rgba(255,255,255,0.6); }
-        .guess-input:focus { outline: none; background: rgba(255,255,255,0.2); }
-
-        .word-feedback {
-            display: flex;
-            gap: 4px;
-            margin: 12px 0;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .feedback-letter {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
-            color: white;
-        }
-
-        .feedback-letter.correct { background: #2ecc71; }
-        .feedback-letter.present { background: #f39c12; }
-        .feedback-letter.absent { background: #95a5a6; }
-
-        /* Scores Screen */
-        .scores-screen {
-            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
-            overflow-y: auto;
-        }
-
         .leaderboard-item {
-            padding: clamp(14px, 4vw, 18px);
+            padding: 14px 18px;
             border-radius: 12px;
             margin-bottom: 12px;
             display: flex;
@@ -283,6 +268,21 @@
         .leaderboard-item.gold { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
         .leaderboard-item.silver { background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%); color: #333; }
         .leaderboard-item.bronze { background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%); }
+        .leaderboard-item { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+
+        .players-list {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .player-item {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px 0;
+        }
 
         .modal {
             display: none;
@@ -321,51 +321,43 @@
             border: 2px solid #e8ecf1;
         }
 
-        .info-text {
-            background: rgba(255,255,255,0.15);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .score-display {
-            background: rgba(255,255,255,0.2);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-size: 18px;
-            font-weight: bold;
+        .sync-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(46, 204, 113, 0.3);
+            color: #2ecc71;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 8px 0;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="status-bar" id="statusBar">🟢 Connected</div>
+    <div class="status-bar" id="statusBar">🟢 Connecting...</div>
+
     <div class="container">
-        <!-- Menu Screen -->
+        <!-- MENU SCREEN -->
         <div id="menuScreen" class="screen active menu-screen">
             <div class="content">
                 <h1>🎮 Game Suite</h1>
-                <p style="font-size: 16px; margin-bottom: 40px; opacity: 0.9;">4 Multiplayer Games</p>
-                <div class="button-group">
-                    <button class="btn-primary" onclick="showCreateRoom()">👥 Create Room</button>
-                    <button class="btn-secondary" onclick="showJoinModal()">🔑 Join Game</button>
-                </div>
+                <p>4 Multiplayer Games • Real-Time Sync</p>
+                <button class="btn-primary" onclick="showCreateRoom()">👥 Create Room</button>
+                <button class="btn-secondary" onclick="showJoinModal()">🔑 Join Room</button>
             </div>
         </div>
 
-        <!-- Create Room Modal -->
+        <!-- CREATE ROOM MODAL -->
         <div id="createModal" class="modal">
             <div class="modal-content">
                 <h2>Create Game Room</h2>
                 <input type="text" id="hostName" placeholder="Your Name" maxlength="20">
-                <button class="btn-primary" onclick="createRoom()">Create</button>
+                <button class="btn-primary" onclick="createRoom()">Create Room</button>
                 <button class="btn-back" onclick="closeCreateModal()">Cancel</button>
             </div>
         </div>
 
-        <!-- Join Room Modal -->
+        <!-- JOIN ROOM MODAL -->
         <div id="joinModal" class="modal">
             <div class="modal-content">
                 <h2>Join Game Room</h2>
@@ -376,111 +368,146 @@
             </div>
         </div>
 
-        <!-- Game Selector Screen -->
-        <div id="selectorScreen" class="screen selector-screen">
+        <!-- LOBBY SCREEN (Shows Code & Waiting) -->
+        <div id="lobbyScreen" class="screen lobby-screen">
             <div class="content">
-                <h1>Select Game</h1>
-                <button class="game-option" onclick="selectGame('truthordare')">
-                    <h3>🎉 Truth or Dare</h3>
-                    <p>Classic party game with progressive difficulty</p>
-                </button>
-                <button class="game-option" onclick="selectGame('higherlower')">
-                    <h3>🃏 Higher or Lower</h3>
-                    <p>Real-time card guessing game</p>
-                </button>
-                <button class="game-option" onclick="selectGame('battleships')">
-                    <h3>⚓ Battleships</h3>
-                    <p>Classic naval strategy game</p>
-                </button>
-                <button class="game-option" onclick="selectGame('wordle')">
-                    <h3>🎮 Wordle</h3>
-                    <p>Guess secret words, 10 attempts</p>
-                </button>
-                <button class="btn-back" onclick="goToMenu()">← Menu</button>
+                <h2>Game Room Ready 🎉</h2>
+                <div class="room-code-box">
+                    <div class="room-code-label">📍 Share This Code</div>
+                    <div class="room-code" id="displayCode">XXXXXX</div>
+                    <div class="room-code-copy">Others can join with this code</div>
+                </div>
+                <div class="players-list">
+                    <p style="font-weight: 700; margin-bottom: 10px;">👥 Players in Room</p>
+                    <div id="playersList"></div>
+                </div>
+                <p style="opacity: 0.8; font-size: 14px;">⏳ Waiting for players...</p>
+                <div style="margin-top: 30px; width: 100%;">
+                    <button class="btn-success" onclick="proceedToGameSelector()">Continue to Games →</button>
+                    <button class="btn-back" onclick="goToMenu()">← Back to Menu</button>
+                </div>
             </div>
         </div>
 
-        <!-- Truth or Dare Screen -->
+        <!-- GAME SELECTOR SCREEN -->
+        <div id="selectorScreen" class="screen selector-screen">
+            <div class="content">
+                <h2>Select a Game</h2>
+                <p style="font-size: 14px; margin-bottom: 25px;">Everyone will play the same game</p>
+                
+                <button class="game-option" onclick="startGame('truthordare')">
+                    <h3>🎉 Truth or Dare</h3>
+                    <p>150+ questions • Progressive difficulty • Play again loops</p>
+                </button>
+
+                <button class="game-option" onclick="startGame('higherlower')">
+                    <h3>🃏 Higher or Lower</h3>
+                    <p>Real-time cards • +/- 10 points • First to 100 wins</p>
+                </button>
+
+                <button class="game-option" onclick="startGame('battleships')">
+                    <h3>⚓ Battleships</h3>
+                    <p>10x10 grids • Place 5 ships • Strategy & tactics</p>
+                </button>
+
+                <button class="game-option" onclick="startGame('wordle')">
+                    <h3>🎮 Wordle</h3>
+                    <p>Custom words • 200+ dictionary • 10 guesses</p>
+                </button>
+
+                <button class="btn-back" onclick="goToLobby()">← Back to Lobby</button>
+            </div>
+        </div>
+
+        <!-- TRUTH OR DARE SCREEN -->
         <div id="todScreen" class="screen tod-screen">
             <div class="content">
-                <p id="roundInfo" style="font-size: 14px; opacity: 0.9;">Round 1 / 5</p>
-                <div class="challenge-card" id="challengeCard">
-                    <div class="challenge-emoji" id="challengeEmoji">🎭</div>
-                    <p style="font-size: 12px; opacity: 0.8;">Truth or Dare</p>
-                    <p class="challenge-text" id="challengeText">Loading challenge...</p>
+                <p id="roundInfo" style="font-size: 14px;">Round 1 / 5</p>
+                <div class="challenge-card">
+                    <div class="challenge-emoji" id="todEmoji">🎭</div>
+                    <p id="todText" class="challenge-text">Loading challenge...</p>
                 </div>
                 <div class="button-row">
                     <button class="btn-success" onclick="completeChallenge()">✅ Done</button>
-                    <button class="btn-info" onclick="skipChallenge()">⏭️ Skip</button>
+                    <button class="btn-info" onclick="getChallenge()">🔄 Different</button>
                 </div>
-                <button class="btn-back" onclick="goToSelector()">← Change Game</button>
+                <button class="btn-danger" onclick="skipChallenge()">⏭️ Skip</button>
+                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
-        <!-- Higher or Lower Screen -->
+        <!-- HIGHER OR LOWER SCREEN -->
         <div id="holScreen" class="screen hol-screen">
             <div class="content">
-                <h1>🃏 Higher or Lower</h1>
-                <p id="currentPlayer" style="margin-bottom: 20px;">Your turn!</p>
+                <h2>🃏 Higher or Lower</h2>
+                <p id="holStatus">Your Turn!</p>
                 <div class="card-display" id="cardDisplay">7♥</div>
+                <p style="font-size: 14px; opacity: 0.8;">Is the next card higher or lower?</p>
                 <div class="button-row">
                     <button class="btn-primary" onclick="guessCard('higher')">📈 Higher</button>
                     <button class="btn-primary" onclick="guessCard('lower')">📉 Lower</button>
                 </div>
-                <p id="cardResult" style="margin-top: 20px;"></p>
-                <button class="btn-back" onclick="goToSelector()">← Change Game</button>
+                <p id="cardResult" style="font-size: 14px; margin-top: 15px;"></p>
+                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
-        <!-- Battleships Screen -->
+        <!-- BATTLESHIPS SCREEN -->
         <div id="battleshipScreen" class="screen battleship-screen">
             <div class="content">
-                <h1>⚓ Battleships</h1>
-                <p style="margin-bottom: 20px;">Place your ships (5-4-3-3-2 cells)</p>
+                <h2>⚓ Battleships</h2>
+                <p>Place your ships (5-4-3-3-2 cells)</p>
                 <div class="grid-container" id="battleshipGrid"></div>
+                <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">Click cells to place ships</p>
                 <button class="btn-success" onclick="startBattleships()" style="margin-top: 20px;">Start Game</button>
-                <button class="btn-back" onclick="goToSelector()">← Change Game</button>
+                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
-        <!-- Wordle Screen -->
+        <!-- WORDLE SCREEN -->
         <div id="wordleScreen" class="screen wordle-screen">
             <div class="content">
-                <h1>🎮 Wordle</h1>
-                <p style="margin-bottom: 20px;" id="wordleStatus">Enter your secret word</p>
-                <input type="text" id="wordleWord" placeholder="5-letter word" maxlength="5" style="text-transform: uppercase;">
+                <h2>🎮 Wordle</h2>
+                <p id="wordleStatus">Set your secret word</p>
+                <input type="text" id="wordleWord" placeholder="5-letter word" maxlength="5" style="text-transform: uppercase; background: white; color: #333; border: 2px solid white;">
                 <button class="btn-success" onclick="submitWordleWord()">Set Word</button>
-                <div id="wordleGuesses"></div>
-                <button class="btn-back" onclick="goToSelector()">← Change Game</button>
+                <div id="wordleGuesses" style="margin-top: 20px;"></div>
+                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
-        <!-- Scores Screen -->
+        <!-- SCORES SCREEN -->
         <div id="scoresScreen" class="screen scores-screen">
             <div class="content">
-                <h1>🏆 Scores</h1>
-                <div id="leaderboard"></div>
+                <h2>🏆 Scores</h2>
+                <div id="leaderboard" style="margin: 20px 0;"></div>
                 <div class="button-row">
-                    <button class="btn-success" onclick="playAgain()">🔄 Play Again</button>
-                    <button class="btn-info" onclick="goToSelector()">🎮 Different Game</button>
+                    <button class="btn-success" onclick="returnToGameSelector()">🎮 Play Again</button>
                 </div>
+                <button class="btn-info" onclick="goToLobby()">👥 Lobby</button>
                 <button class="btn-back" onclick="goToMenu()">← Menu</button>
             </div>
         </div>
     </div>
 
     <script>
+        // ============ GAME STATE ============
         let gameState = {
             roomCode: null,
             playerName: null,
             players: [],
             scores: {},
             gameMode: null,
-            isPlaying: false
+            isPlaying: false,
+            isHost: false,
+            currentChallenge: null,
+            round: 1,
+            totalRounds: 5
         };
 
         let socket = null;
 
+        // ============ INITIALIZE SOCKET ============
         function initSocket() {
             const serverUrl = window.location.origin;
             socket = io(serverUrl, {
@@ -490,54 +517,70 @@
                 reconnectionAttempts: 10
             });
 
+            // Connection Events
             socket.on('connect', () => {
+                console.log('✅ Socket connected:', socket.id);
                 updateStatus('🟢 Connected', false);
             });
 
             socket.on('disconnect', () => {
+                console.log('❌ Socket disconnected');
                 updateStatus('🔴 Disconnected', true);
             });
 
+            // Room Events
             socket.on('playerJoined', (data) => {
+                console.log('👤 Player joined:', data.players);
                 gameState.players = data.players;
                 gameState.scores = data.scores;
+                updatePlayersList();
             });
 
+            // Game Events
             socket.on('gameModeSelected', (data) => {
+                console.log('🎮 Game mode selected:', data.gameMode);
                 gameState.gameMode = data.gameMode;
                 gameState.players = data.players;
-                gameState.scores = data.scores;
+                gameState.isPlaying = true;
                 startGameMode(data.gameMode);
             });
 
             socket.on('challengeGenerated', (data) => {
-                document.getElementById('challengeEmoji').textContent = data.challenge.emoji || '🎭';
-                document.getElementById('challengeText').textContent = data.challenge.text;
-                document.getElementById('roundInfo').textContent = `Round ${data.round} / ${data.totalRounds}`;
+                console.log('🎭 Challenge generated');
+                gameState.currentChallenge = data.challenge;
+                gameState.round = data.round;
+                document.getElementById('todEmoji').textContent = data.challenge.emoji || '🎭';
+                document.getElementById('todText').textContent = data.challenge.text;
+                document.getElementById('roundInfo').textContent = `Round ${data.round} / ${gameState.totalRounds}`;
             });
 
             socket.on('cardGenerated', (data) => {
+                console.log('🃏 Card generated:', data.card);
                 document.getElementById('cardDisplay').textContent = data.card;
             });
 
             socket.on('cardGuessResult', (data) => {
-                const resultText = data.correct ? '✅ Correct!' : '❌ Wrong!';
-                document.getElementById('cardResult').textContent = resultText;
+                console.log('📊 Guess result:', data.correct);
+                const text = data.correct ? '✅ Correct!' : '❌ Wrong!';
+                document.getElementById('cardResult').textContent = text;
             });
 
             socket.on('scoreUpdated', (data) => {
+                console.log('📈 Scores updated:', data.scores);
                 gameState.scores = data.scores;
-                updateScores();
+                updateLeaderboard();
             });
 
-            socket.on('returnedToLobby', (data) => {
+            socket.on('playerLeft', (data) => {
+                console.log('👋 Player left');
                 gameState.players = data.players;
                 gameState.scores = data.scores;
-                showScores();
+                updatePlayersList();
             });
 
-            socket.on('error', (message) => {
-                alert('Error: ' + message);
+            socket.on('error', (msg) => {
+                console.error('❌ Error:', msg);
+                alert('Error: ' + msg);
             });
         }
 
@@ -551,13 +594,34 @@
             }
         }
 
+        // ============ SCREEN NAVIGATION ============
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             window.scrollTo(0, 0);
         }
 
-        // Room Management
+        function goToMenu() {
+            if (gameState.roomCode && socket) {
+                socket.emit('leaveRoom', { roomCode: gameState.roomCode, playerName: gameState.playerName });
+            }
+            gameState = { roomCode: null, playerName: null, players: [], scores: {}, gameMode: null, isPlaying: false, isHost: false };
+            showScreen('menuScreen');
+        }
+
+        function goToLobby() {
+            showScreen('lobbyScreen');
+        }
+
+        function proceedToGameSelector() {
+            showScreen('selectorScreen');
+        }
+
+        function returnToGameSelector() {
+            showScreen('selectorScreen');
+        }
+
+        // ============ ROOM MANAGEMENT ============
         function showCreateRoom() {
             document.getElementById('createModal').classList.add('active');
             document.getElementById('hostName').focus();
@@ -569,7 +633,7 @@
 
         function createRoom() {
             const name = document.getElementById('hostName').value.trim();
-            if (!name) { alert('Enter your name'); return; }
+            if (!name) { alert('Please enter your name'); return; }
 
             fetch('/api/rooms/create', {
                 method: 'POST',
@@ -581,12 +645,19 @@
                 if (d.success) {
                     gameState.roomCode = d.roomCode;
                     gameState.playerName = name;
+                    gameState.isHost = true;
+                    gameState.players = [name];
+                    gameState.scores[name] = 0;
+                    
+                    document.getElementById('displayCode').textContent = gameState.roomCode;
                     closeCreateModal();
                     initSocket();
                     socket.emit('joinRoom', { roomCode: d.roomCode, playerName: name });
-                    showScreen('selectorScreen');
+                    showScreen('lobbyScreen');
+                    updatePlayersList();
                 }
-            });
+            })
+            .catch(err => alert('Error creating room: ' + err));
         }
 
         function showJoinModal() {
@@ -602,7 +673,7 @@
             const code = document.getElementById('joinCode').value.toUpperCase().trim();
             const name = document.getElementById('joinName').value.trim();
 
-            if (!code || code.length !== 6) { alert('Invalid room code'); return; }
+            if (!code || code.length !== 6) { alert('Enter valid room code'); return; }
             if (!name) { alert('Enter your name'); return; }
 
             fetch('/api/rooms/join', {
@@ -617,33 +688,37 @@
                     gameState.playerName = name;
                     gameState.players = d.room.players;
                     gameState.scores = Object.fromEntries(d.room.players.map(p => [p, 0]));
+                    
+                    document.getElementById('displayCode').textContent = code;
                     closeJoinModal();
                     initSocket();
                     socket.emit('joinRoom', { roomCode: code, playerName: name });
-                    showScreen('selectorScreen');
+                    showScreen('lobbyScreen');
+                    updatePlayersList();
                 } else {
                     alert('Failed to join: ' + d.error);
                 }
-            });
+            })
+            .catch(err => alert('Error joining room: ' + err));
         }
 
-        // Game Selection
-        function selectGame(mode) {
-            if (socket && gameState.roomCode) {
-                socket.emit('selectGameMode', { roomCode: gameState.roomCode, gameMode: mode });
-            }
+        function updatePlayersList() {
+            const list = document.getElementById('playersList');
+            list.innerHTML = gameState.players.map(p => `<div class="player-item">✅ ${p}</div>`).join('');
+        }
+
+        // ============ GAME LOGIC ============
+        function startGame(mode) {
+            if (!socket || !gameState.roomCode) return;
+            socket.emit('selectGameMode', { roomCode: gameState.roomCode, gameMode: mode });
         }
 
         function startGameMode(mode) {
             if (mode === 'truthordare') {
-                if (socket && gameState.roomCode) {
-                    socket.emit('getChallenge', { roomCode: gameState.roomCode });
-                }
+                socket.emit('getChallenge', { roomCode: gameState.roomCode });
                 showScreen('todScreen');
             } else if (mode === 'higherlower') {
-                if (socket && gameState.roomCode) {
-                    socket.emit('generateCard', { roomCode: gameState.roomCode });
-                }
+                socket.emit('generateCard', { roomCode: gameState.roomCode });
                 showScreen('holScreen');
             } else if (mode === 'battleships') {
                 generateBattleshipGrid();
@@ -653,10 +728,20 @@
             }
         }
 
-        // Game Functions
-        function completeChallenge() {
+        function getChallenge() {
             if (socket && gameState.roomCode) {
                 socket.emit('getChallenge', { roomCode: gameState.roomCode });
+            }
+        }
+
+        function completeChallenge() {
+            if (socket && gameState.roomCode) {
+                socket.emit('completeChallenge', {
+                    roomCode: gameState.roomCode,
+                    playerName: gameState.playerName,
+                    points: 25,
+                    completedByName: gameState.playerName
+                });
             }
         }
 
@@ -682,7 +767,7 @@
             for (let i = 0; i < 100; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
-                cell.textContent = i;
+                cell.textContent = (i % 10) + 1;
                 grid.appendChild(cell);
             }
         }
@@ -696,7 +781,11 @@
                     { x: 0, y: 3, length: 3, horizontal: true },
                     { x: 0, y: 4, length: 2, horizontal: true }
                 ];
-                socket.emit('placeBattleships', { roomCode: gameState.roomCode, playerName: gameState.playerName, ships });
+                socket.emit('placeBattleships', {
+                    roomCode: gameState.roomCode,
+                    playerName: gameState.playerName,
+                    ships: ships
+                });
             }
         }
 
@@ -710,53 +799,22 @@
                     playerName: gameState.playerName,
                     word: word
                 });
-                document.getElementById('wordleWord').value = '';
-                document.getElementById('wordleStatus').textContent = 'Word set! Waiting for others...';
+                document.getElementById('wordleStatus').textContent = '✅ Word set! Waiting...';
             }
         }
 
-        function updateScores() {
+        function updateLeaderboard() {
             const sorted = Object.entries(gameState.scores).sort((a, b) => b[1] - a[1]);
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = sorted.map((item, idx) => {
+            const board = document.getElementById('leaderboard');
+            if (!board) return;
+            
+            board.innerHTML = sorted.map((item, idx) => {
                 const [player, score] = item;
                 const className = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
                 const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-                return `
-                    <div class="leaderboard-item ${className}">
-                        <span>${medal} ${player}</span>
-                        <span>${score}</span>
-                    </div>
-                `;
+                return `<div class="leaderboard-item ${className}"><span>${medal} ${player}</span><span>${score}</span></div>`;
             }).join('');
         }
-
-        function showScores() {
-            updateScores();
-            showScreen('scoresScreen');
-        }
-
-        function playAgain() {
-            if (socket && gameState.roomCode) {
-                socket.emit('returnToLobby', { roomCode: gameState.roomCode });
-                showScreen('selectorScreen');
-            }
-        }
-
-        function goToSelector() {
-            showScreen('selectorScreen');
-        }
-
-        function goToMenu() {
-            if (gameState.roomCode && socket) {
-                socket.emit('leaveRoom', { roomCode: gameState.roomCode, playerName: gameState.playerName });
-            }
-            gameState = { roomCode: null, playerName: null, players: [], scores: {}, gameMode: null, isPlaying: false };
-            showScreen('menuScreen');
-        }
-
-        // Initialize
-        initSocket();
     </script>
 </body>
 </html>
