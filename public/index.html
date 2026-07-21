@@ -5,44 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
-    <title>Multiplayer Game Suite</title>
+    <title>Game Suite - Multiplayer Games</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        body { background: #f5f7fa; position: fixed; left: 0; top: 0; overflow: hidden; }
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --info: #3498db;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --text: #333;
+            --text-light: #777;
+            --border: #ddd;
+            --shadow: 0 10px 40px rgba(0,0,0,0.1);
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+        }
 
-        .container { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
-        .screen { 
-            display: none; 
-            width: 100%; 
-            height: 100%; 
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f8f9fa;
+            color: var(--text);
+        }
+
+        body {
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             flex: 1;
-            padding: 20px;
+            padding: clamp(20px, 5vw, 40px);
             align-items: center;
             justify-content: center;
         }
-        .screen.active { display: flex; flex-direction: column; }
 
-        .status-bar {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 11px;
-            background: #2ecc71;
-            color: white;
-            z-index: 999;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+        .screen.active {
+            display: flex;
+            flex-direction: column;
         }
 
-        .status-bar.offline { 
-            background: #e74c3c;
-            animation: pulse 1s infinite;
+        .content {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            background: var(--secondary);
+            color: white;
+            z-index: 999;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-bar.offline {
+            background: var(--danger);
+            animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
@@ -50,240 +104,335 @@
             50% { opacity: 0.7; }
         }
 
-        .content {
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
         }
 
+        /* Typography */
         h1 {
-            font-size: clamp(32px, 10vw, 48px);
-            margin-bottom: 20px;
+            font-size: clamp(32px, 8vw, 48px);
             font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         h2 {
-            font-size: clamp(24px, 8vw, 36px);
-            margin-bottom: 20px;
-            font-weight: 800;
+            font-size: clamp(24px, 6vw, 36px);
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: clamp(18px, 5vw, 24px);
+            font-weight: 600;
+            margin-bottom: 12px;
         }
 
         p {
-            font-size: 16px;
-            margin-bottom: 15px;
-            opacity: 0.9;
-            line-height: 1.5;
+            font-size: clamp(14px, 4vw, 16px);
+            line-height: 1.6;
+            color: var(--text-light);
+            margin-bottom: 12px;
         }
 
-        button {
-            padding: 16px 24px;
+        /* Buttons */
+        .btn {
+            padding: clamp(14px, 3vw, 16px) clamp(20px, 4vw, 24px);
             border: none;
-            border-radius: 12px;
-            font-size: clamp(14px, 4vw, 16px);
-            font-weight: 700;
+            border-radius: 10px;
+            font-size: clamp(14px, 3.5vw, 15px);
+            font-weight: 600;
             cursor: pointer;
-            min-height: 56px;
+            transition: all 0.2s ease;
+            width: 100%;
+            min-height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s;
-            width: 100%;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
             touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 12px 50px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--secondary), #27ae60);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--info), #2980b9);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #c0392b);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-bottom: 12px;
         }
 
-        button:active { transform: scale(0.95); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-row .btn {
+            margin-bottom: 0;
+        }
 
-        .btn-primary { background: white; color: #667eea; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .btn-secondary { background: rgba(255,255,255,0.95); color: #667eea; }
-        .btn-success { background: #2ecc71; color: white; }
-        .btn-info { background: #3498db; color: white; }
-        .btn-danger { background: #e74c3c; color: white; }
-        .btn-back { background: rgba(255,255,255,0.15); color: white; backdrop-filter: blur(10px); }
-
-        input {
+        /* Input Fields */
+        input, select {
             width: 100%;
-            padding: 14px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 10px;
+            padding: clamp(12px, 3vw, 14px);
+            border: 2px solid var(--border);
+            border-radius: 8px;
             font-size: 16px;
             margin-bottom: 12px;
-            background: rgba(255,255,255,0.1);
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+
+        /* Card Components */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: clamp(16px, 4vw, 24px);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #f0f0f0;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .card-large {
+            padding: clamp(24px, 6vw, 32px);
+            text-align: center;
+        }
+
+        /* Screen Backgrounds */
+        .screen-gradient-1 {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
         }
 
-        input::placeholder { color: rgba(255,255,255,0.6); }
-        input:focus { outline: none; border-color: white; background: rgba(255,255,255,0.15); }
+        .screen-gradient-2 {
+            background: linear-gradient(135deg, var(--secondary) 0%, #27ae60 100%);
+            color: white;
+        }
 
-        .menu-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .lobby-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .selector-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; overflow-y: auto; }
-        .tod-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .hol-screen { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; }
-        .battleship-screen { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
-        .wordle-screen { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; }
-        .scores-screen { background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%); color: white; overflow-y: auto; }
+        .screen-gradient-3 {
+            background: linear-gradient(135deg, var(--info) 0%, #2980b9 100%);
+            color: white;
+        }
 
+        .screen-gradient-4 {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+        }
+
+        .screen-gradient-5 {
+            background: linear-gradient(135deg, var(--warning) 0%, #e67e22 100%);
+            color: white;
+        }
+
+        /* Room Code Display */
         .room-code-box {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.4);
-            padding: 20px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 12px;
-            margin: 20px 0;
+            padding: clamp(20px, 5vw, 28px);
+            margin: 24px 0;
             backdrop-filter: blur(10px);
+            text-align: center;
         }
 
         .room-code-label {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            opacity: 0.8;
-            margin-bottom: 8px;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .room-code {
-            font-size: 42px;
+            font-size: clamp(36px, 10vw, 48px);
             font-weight: 900;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             font-family: 'Courier New', monospace;
-            word-break: break-all;
+            margin: 12px 0;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .room-code-copy {
             font-size: 12px;
+            opacity: 0.8;
             margin-top: 8px;
-            opacity: 0.7;
         }
 
-        .game-option {
-            background: white;
-            color: #333;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: left;
-            width: 100%;
-            border: none;
-            min-height: auto;
-        }
-
-        .game-option:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .game-option h3 { font-size: 20px; margin-bottom: 8px; }
-        .game-option p { font-size: 14px; opacity: 0.7; margin: 0; }
-
-        .challenge-card {
-            background: white;
-            color: #333;
-            border-radius: 16px;
-            padding: clamp(20px, 5vw, 28px);
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .challenge-emoji { font-size: 64px; margin: 16px 0; }
-        .challenge-text { font-size: clamp(16px, 4.5vw, 20px); font-weight: 600; margin: 16px 0; line-height: 1.6; }
-
-        .card-display {
-            background: white;
-            color: #333;
-            font-size: 80px;
-            font-weight: bold;
-            padding: 40px 20px;
-            border-radius: 16px;
-            text-align: center;
-            margin-bottom: 30px;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .button-row {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-            margin-bottom: 12px;
-        }
-
-        .button-row button {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .grid-container {
+        /* Game Options */
+        .game-grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 2px;
-            margin: 20px 0;
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 400px;
+            grid-template-columns: 1fr;
+            gap: 12px;
         }
 
-        .grid-cell {
-            width: 100%;
-            aspect-ratio: 1;
-            background: #2980b9;
-            border: 1px solid rgba(255,255,255,0.3);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 4px;
-            transition: all 0.2s;
+        @media (min-width: 600px) {
+            .game-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
-        .grid-cell:hover { background: #1a5f8f; }
-        .grid-cell.hit { background: #e74c3c; }
-        .grid-cell.miss { background: #95a5a6; }
-
-        .leaderboard-item {
-            padding: 14px 18px;
+        .game-card {
+            background: white;
             border-radius: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            font-weight: 700;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            border: 2px solid transparent;
+            text-align: center;
         }
 
-        .leaderboard-item.gold { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
-        .leaderboard-item.silver { background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%); color: #333; }
-        .leaderboard-item.bronze { background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%); }
-        .leaderboard-item { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
 
+        .game-card h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .game-card p {
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* Players List */
         .players-list {
             background: rgba(255,255,255,0.15);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+            border-radius: 12px;
+            padding: clamp(16px, 4vw, 20px);
+            margin: 16px 0;
             backdrop-filter: blur(10px);
         }
 
-        .player-item {
-            padding: 10px;
-            font-size: 16px;
-            margin: 5px 0;
+        .players-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            opacity: 0.9;
         }
 
+        .player-item {
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .player-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .player-badge {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -291,7 +440,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             align-items: center;
             justify-content: center;
             z-index: 1000;
@@ -299,51 +448,313 @@
             backdrop-filter: blur(5px);
         }
 
-        .modal.active { display: flex; }
+        .modal.active {
+            display: flex;
+        }
+
         .modal-content {
             background: white;
-            padding: 28px;
             border-radius: 16px;
-            max-width: 340px;
+            padding: clamp(24px, 6vw, 32px);
+            max-width: 400px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         .modal-content h2 {
-            margin: 0 0 20px 0;
-            color: #333;
-            font-size: clamp(18px, 5vw, 24px);
+            color: var(--text);
         }
 
-        .modal-content input {
+        /* Challenge Card */
+        .challenge-card {
             background: white;
-            color: #333;
-            border: 2px solid #e8ecf1;
+            color: var(--text);
+            border-radius: 16px;
+            padding: clamp(24px, 6vw, 32px);
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .sync-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background: rgba(46, 204, 113, 0.3);
-            color: #2ecc71;
-            border-radius: 6px;
+        .challenge-emoji {
+            font-size: clamp(48px, 12vw, 64px);
+            margin-bottom: 16px;
+        }
+
+        .challenge-type {
             font-size: 12px;
-            margin: 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
             font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .challenge-text {
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 600;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        /* Card Display (Higher or Lower) */
+        .card-display {
+            background: white;
+            color: var(--text);
+            font-size: clamp(48px, 12vw, 72px);
+            font-weight: bold;
+            padding: clamp(32px, 6vw, 40px);
+            border-radius: 16px;
+            text-align: center;
+            margin: 24px 0;
+            width: 200px;
+            height: 200px;
+            max-width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: var(--shadow);
+        }
+
+        /* Score Display */
+        .score-display {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .score-value {
+            font-size: clamp(28px, 6vw, 36px);
+            font-weight: 800;
+            color: white;
+            margin-top: 8px;
+        }
+
+        /* Battleships Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 1px;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 1;
+        }
+
+        .grid-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .grid-cell:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .grid-cell.ship {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .grid-cell.hit {
+            background: #e74c3c;
+        }
+
+        .grid-cell.miss {
+            background: #95a5a6;
+        }
+
+        /* Ship Palette */
+        .ship-palette {
+            margin: 20px 0;
+            padding: 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ship-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .ship-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .ship-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .ship-size {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .orientation-btn {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .orientation-btn.active {
+            background: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        /* Leaderboard */
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(12px, 3vw, 16px);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .leaderboard-item.gold {
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            color: #2c3e50;
+        }
+
+        .leaderboard-item.silver {
+            background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+            color: #2c3e50;
+        }
+
+        .leaderboard-item.bronze {
+            background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
+            color: white;
+        }
+
+        .leaderboard-item.other {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .leaderboard-medal {
+            font-size: 20px;
+            margin-right: 12px;
+            min-width: 30px;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+
+        .leaderboard-score {
+            font-size: clamp(16px, 4vw, 20px);
+            font-weight: 800;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 480px) {
+            .btn {
+                font-size: 13px;
+                padding: 12px 16px;
+                min-height: 48px;
+            }
+
+            .screen {
+                padding: clamp(16px, 4vw, 20px);
+            }
+
+            .card {
+                padding: clamp(12px, 3vw, 16px);
+            }
+
+            .game-card {
+                padding: 16px;
+            }
+
+            .status-bar {
+                font-size: 10px;
+                padding: 8px 12px;
+            }
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(255,255,255,0.15);
+            border-left: 4px solid rgba(255,255,255,0.5);
+            padding: clamp(12px, 3vw, 16px);
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+        }
+
+        .waiting-indicator {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="status-bar" id="statusBar">🟢 Connecting...</div>
+    <div class="status-bar" id="statusBar">
+        <span class="status-dot"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
 
     <div class="container">
-        <!-- MENU SCREEN -->
-        <div id="menuScreen" class="screen active menu-screen">
+        <!-- HOME SCREEN - Code Entry First -->
+        <div id="homeScreen" class="screen active screen-gradient-1">
             <div class="content">
                 <h1>🎮 Game Suite</h1>
-                <p>4 Multiplayer Games • Real-Time Sync</p>
-                <button class="btn-primary" onclick="showCreateRoom()">👥 Create Room</button>
-                <button class="btn-secondary" onclick="showJoinModal()">🔑 Join Room</button>
+                <p style="text-align: center; margin-bottom: 32px;">Multiplayer Games • Real-Time Sync</p>
+
+                <div class="card" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); color: white;">
+                    <div class="input-label" style="color: rgba(255,255,255,0.9);">Have a room code?</div>
+                    <input type="text" id="quickJoinCode" placeholder="Enter Code (e.g. A3K9P2)" maxlength="6" style="text-transform: uppercase; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); color: white;">
+                    <button class="btn btn-secondary" onclick="quickJoinFlow()">Join Room</button>
+                </div>
+
+                <p style="text-align: center; color: rgba(255,255,255,0.8); margin: 20px 0; font-size: 13px;">OR</p>
+
+                <button class="btn btn-secondary" onclick="showCreateRoom()">Create New Room</button>
             </div>
         </div>
 
@@ -351,141 +762,184 @@
         <div id="createModal" class="modal">
             <div class="modal-content">
                 <h2>Create Game Room</h2>
-                <input type="text" id="hostName" placeholder="Your Name" maxlength="20">
-                <button class="btn-primary" onclick="createRoom()">Create Room</button>
-                <button class="btn-back" onclick="closeCreateModal()">Cancel</button>
-            </div>
-        </div>
-
-        <!-- JOIN ROOM MODAL -->
-        <div id="joinModal" class="modal">
-            <div class="modal-content">
-                <h2>Join Game Room</h2>
-                <input type="text" id="joinCode" placeholder="Room Code" maxlength="6" style="text-transform: uppercase;">
-                <input type="text" id="joinName" placeholder="Your Name" maxlength="20">
-                <button class="btn-primary" onclick="joinRoom()">Join</button>
-                <button class="btn-back" onclick="closeJoinModal()">Cancel</button>
-            </div>
-        </div>
-
-        <!-- LOBBY SCREEN (Shows Code & Waiting) -->
-        <div id="lobbyScreen" class="screen lobby-screen">
-            <div class="content">
-                <h2>Game Room Ready 🎉</h2>
-                <div class="room-code-box">
-                    <div class="room-code-label">📍 Share This Code</div>
-                    <div class="room-code" id="displayCode">XXXXXX</div>
-                    <div class="room-code-copy">Others can join with this code</div>
+                <div class="input-group">
+                    <label class="input-label">Your Name</label>
+                    <input type="text" id="hostName" placeholder="Enter your name" maxlength="20">
                 </div>
+                <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
+                <button class="btn btn-back" style="background: #e0e0e0; color: var(--text);" onclick="closeCreateModal()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- QUICK JOIN MODAL -->
+        <div id="quickJoinModal" class="modal">
+            <div class="modal-content">
+                <h2>Join Room</h2>
+                <div class="input-group">
+                    <label class="input-label">Your Name</label>
+                    <input type="text" id="quickJoinName" placeholder="Enter your name" maxlength="20">
+                </div>
+                <button class="btn btn-primary" onclick="quickJoinRoom()">Join</button>
+                <button class="btn btn-back" style="background: #e0e0e0; color: var(--text);" onclick="closeQuickJoinModal()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- LOBBY SCREEN -->
+        <div id="lobbyScreen" class="screen screen-gradient-1">
+            <div class="content">
+                <h2>Welcome! 🎉</h2>
+                <p>Room ready for gameplay</p>
+
+                <div class="room-code-box">
+                    <div class="room-code-label">Share This Code</div>
+                    <div class="room-code" id="displayCode">XXXXXX</div>
+                    <div class="room-code-copy">Friends can join with this code</div>
+                </div>
+
                 <div class="players-list">
-                    <p style="font-weight: 700; margin-bottom: 10px;">👥 Players in Room</p>
+                    <div class="players-title">👥 Players in Room</div>
                     <div id="playersList"></div>
                 </div>
-                <p style="opacity: 0.8; font-size: 14px;">⏳ Waiting for players...</p>
-                <div style="margin-top: 30px; width: 100%;">
-                    <button class="btn-success" onclick="proceedToGameSelector()">Continue to Games →</button>
-                    <button class="btn-back" onclick="goToMenu()">← Back to Menu</button>
+
+                <div class="info-box">
+                    <span class="waiting-indicator">⏳</span> Waiting for players to join...
                 </div>
+
+                <button class="btn btn-success" onclick="proceedToGameSelector()">Select Game</button>
+                <button class="btn btn-danger" onclick="goToHome()">Leave Room</button>
             </div>
         </div>
 
         <!-- GAME SELECTOR SCREEN -->
-        <div id="selectorScreen" class="screen selector-screen">
+        <div id="selectorScreen" class="screen screen-gradient-1">
             <div class="content">
-                <h2>Select a Game</h2>
-                <p style="font-size: 14px; margin-bottom: 25px;">Everyone will play the same game</p>
-                
-                <button class="game-option" onclick="startGame('truthordare')">
-                    <h3>🎉 Truth or Dare</h3>
-                    <p>150+ questions • Progressive difficulty • Play again loops</p>
-                </button>
+                <h2>Choose a Game</h2>
+                <p style="text-align: center;">All players will play together</p>
 
-                <button class="game-option" onclick="startGame('higherlower')">
-                    <h3>🃏 Higher or Lower</h3>
-                    <p>Real-time cards • +/- 10 points • First to 100 wins</p>
-                </button>
+                <div class="game-grid">
+                    <div class="game-card" onclick="startGame('truthordare')">
+                        <h3>🎉 Truth or Dare</h3>
+                        <p>150+ Questions</p>
+                    </div>
+                    <div class="game-card" onclick="startGame('higherlower')">
+                        <h3>🃏 Higher/Lower</h3>
+                        <p>Card Game</p>
+                    </div>
+                    <div class="game-card" onclick="startGame('battleships')">
+                        <h3>⚓ Battleships</h3>
+                        <p>Strategy Game</p>
+                    </div>
+                    <div class="game-card" onclick="startGame('wordle')">
+                        <h3>🎮 Wordle</h3>
+                        <p>Word Game</p>
+                    </div>
+                </div>
 
-                <button class="game-option" onclick="startGame('battleships')">
-                    <h3>⚓ Battleships</h3>
-                    <p>10x10 grids • Place 5 ships • Strategy & tactics</p>
-                </button>
-
-                <button class="game-option" onclick="startGame('wordle')">
-                    <h3>🎮 Wordle</h3>
-                    <p>Custom words • 200+ dictionary • 10 guesses</p>
-                </button>
-
-                <button class="btn-back" onclick="goToLobby()">← Back to Lobby</button>
+                <button class="btn btn-back" onclick="goToLobby()">← Back to Lobby</button>
             </div>
         </div>
 
         <!-- TRUTH OR DARE SCREEN -->
-        <div id="todScreen" class="screen tod-screen">
+        <div id="todScreen" class="screen screen-gradient-1">
             <div class="content">
-                <p id="roundInfo" style="font-size: 14px;">Round 1 / 5</p>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 12px;">Round <span id="roundNum">1</span> of <span id="totalRounds">5</span></p>
+                    <h3 style="margin: 8px 0 0 0; font-size: 16px;" id="difficultyLabel">Easy</h3>
+                </div>
+
                 <div class="challenge-card">
                     <div class="challenge-emoji" id="todEmoji">🎭</div>
-                    <p id="todText" class="challenge-text">Loading challenge...</p>
+                    <p class="challenge-type" id="todType">Truth</p>
+                    <p class="challenge-text" id="todText">Loading challenge...</p>
                 </div>
-                <div class="button-row">
-                    <button class="btn-success" onclick="completeChallenge()">✅ Done</button>
-                    <button class="btn-info" onclick="getChallenge()">🔄 Different</button>
+
+                <div class="btn-row">
+                    <button class="btn btn-success" onclick="completeChallenge()">✅ Done</button>
+                    <button class="btn btn-info" onclick="getChallenge()">🔄 Next</button>
                 </div>
-                <button class="btn-danger" onclick="skipChallenge()">⏭️ Skip</button>
-                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
         <!-- HIGHER OR LOWER SCREEN -->
-        <div id="holScreen" class="screen hol-screen">
+        <div id="holScreen" class="screen screen-gradient-2">
             <div class="content">
                 <h2>🃏 Higher or Lower</h2>
-                <p id="holStatus">Your Turn!</p>
-                <div class="card-display" id="cardDisplay">7♥</div>
-                <p style="font-size: 14px; opacity: 0.8;">Is the next card higher or lower?</p>
-                <div class="button-row">
-                    <button class="btn-primary" onclick="guessCard('higher')">📈 Higher</button>
-                    <button class="btn-primary" onclick="guessCard('lower')">📉 Lower</button>
+
+                <div class="score-display">
+                    <div style="font-size: 12px;">Your Score</div>
+                    <div class="score-value" id="holYourScore">0</div>
                 </div>
-                <p id="cardResult" style="font-size: 14px; margin-top: 15px;"></p>
-                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
+
+                <div class="card-display" id="cardDisplay">7♥</div>
+
+                <p style="text-align: center; color: rgba(255,255,255,0.9);">Is the next card higher or lower?</p>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="guessCard('higher')">📈 Higher</button>
+                    <button class="btn btn-primary" onclick="guessCard('lower')">📉 Lower</button>
+                </div>
+
+                <p id="cardResult" style="text-align: center; margin: 16px 0; font-size: 14px; min-height: 20px;"></p>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
         <!-- BATTLESHIPS SCREEN -->
-        <div id="battleshipScreen" class="screen battleship-screen">
+        <div id="battleshipScreen" class="screen screen-gradient-3">
             <div class="content">
                 <h2>⚓ Battleships</h2>
-                <p>Place your ships (5-4-3-3-2 cells)</p>
-                <div class="grid-container" id="battleshipGrid"></div>
-                <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">Click cells to place ships</p>
-                <button class="btn-success" onclick="startBattleships()" style="margin-top: 20px;">Start Game</button>
-                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
+                <p style="text-align: center;">Place your ships on the grid</p>
+
+                <div class="ship-palette">
+                    <div id="shipsList"></div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <div class="grid-container" id="battleshipGrid"></div>
+                </div>
+
+                <p style="text-align: center; font-size: 12px; opacity: 0.8; margin-top: 12px;">Click grid to place ships • Hold to rotate</p>
+
+                <div class="btn-row">
+                    <button class="btn btn-success" onclick="resetBattleships()">🔄 Reset</button>
+                    <button class="btn btn-success" onclick="startBattleships()">Ready!</button>
+                </div>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
         <!-- WORDLE SCREEN -->
-        <div id="wordleScreen" class="screen wordle-screen">
+        <div id="wordleScreen" class="screen screen-gradient-4">
             <div class="content">
                 <h2>🎮 Wordle</h2>
-                <p id="wordleStatus">Set your secret word</p>
-                <input type="text" id="wordleWord" placeholder="5-letter word" maxlength="5" style="text-transform: uppercase; background: white; color: #333; border: 2px solid white;">
-                <button class="btn-success" onclick="submitWordleWord()">Set Word</button>
-                <div id="wordleGuesses" style="margin-top: 20px;"></div>
-                <button class="btn-back" onclick="returnToGameSelector()">← Back</button>
+                <p id="wordleStatus" style="text-align: center;">Set your secret word</p>
+
+                <div class="card">
+                    <label class="input-label">5-Letter Word</label>
+                    <input type="text" id="wordleWord" placeholder="Enter word" maxlength="5" style="text-transform: uppercase;">
+                    <button class="btn btn-success" onclick="submitWordleWord()">Set Word</button>
+                </div>
+
+                <div id="wordleGuesses"></div>
+
+                <button class="btn btn-back" onclick="returnToGameSelector()">← Back</button>
             </div>
         </div>
 
         <!-- SCORES SCREEN -->
-        <div id="scoresScreen" class="screen scores-screen">
+        <div id="scoresScreen" class="screen screen-gradient-5">
             <div class="content">
-                <h2>🏆 Scores</h2>
-                <div id="leaderboard" style="margin: 20px 0;"></div>
-                <div class="button-row">
-                    <button class="btn-success" onclick="returnToGameSelector()">🎮 Play Again</button>
-                </div>
-                <button class="btn-info" onclick="goToLobby()">👥 Lobby</button>
-                <button class="btn-back" onclick="goToMenu()">← Menu</button>
+                <h2>🏆 Final Scores</h2>
+
+                <div id="leaderboard" style="margin: 24px 0;"></div>
+
+                <button class="btn btn-success" onclick="returnToGameSelector()">🎮 Play Again</button>
+                <button class="btn btn-info" onclick="goToLobby()">👥 Back to Lobby</button>
+                <button class="btn btn-back" onclick="goToHome()">🏠 Home</button>
             </div>
         </div>
     </div>
@@ -502,13 +956,18 @@
             isHost: false,
             currentChallenge: null,
             round: 1,
-            totalRounds: 5
+            totalRounds: 5,
+            holScore: 0,
+            battleshipShips: []
         };
 
         let socket = null;
+        let quickJoinCode = null;
 
-        // ============ INITIALIZE SOCKET ============
+        // ============ SOCKET INITIALIZATION ============
         function initSocket() {
+            if (socket) return;
+            
             const serverUrl = window.location.origin;
             socket = io(serverUrl, {
                 reconnection: true,
@@ -517,76 +976,59 @@
                 reconnectionAttempts: 10
             });
 
-            // Connection Events
             socket.on('connect', () => {
-                console.log('✅ Socket connected:', socket.id);
-                updateStatus('🟢 Connected', false);
+                updateStatus('Connected', false);
             });
 
             socket.on('disconnect', () => {
-                console.log('❌ Socket disconnected');
-                updateStatus('🔴 Disconnected', true);
+                updateStatus('Disconnected', true);
             });
 
-            // Room Events
             socket.on('playerJoined', (data) => {
-                console.log('👤 Player joined:', data.players);
                 gameState.players = data.players;
                 gameState.scores = data.scores;
                 updatePlayersList();
             });
 
-            // Game Events
             socket.on('gameModeSelected', (data) => {
-                console.log('🎮 Game mode selected:', data.gameMode);
                 gameState.gameMode = data.gameMode;
-                gameState.players = data.players;
-                gameState.isPlaying = true;
+                gameState.round = 1;
+                gameState.holScore = 0;
                 startGameMode(data.gameMode);
             });
 
             socket.on('challengeGenerated', (data) => {
-                console.log('🎭 Challenge generated');
-                gameState.currentChallenge = data.challenge;
-                gameState.round = data.round;
                 document.getElementById('todEmoji').textContent = data.challenge.emoji || '🎭';
                 document.getElementById('todText').textContent = data.challenge.text;
-                document.getElementById('roundInfo').textContent = `Round ${data.round} / ${gameState.totalRounds}`;
+                document.getElementById('todType').textContent = data.challenge.type || 'Truth';
+                document.getElementById('roundNum').textContent = data.round;
+                gameState.round = data.round;
             });
 
             socket.on('cardGenerated', (data) => {
-                console.log('🃏 Card generated:', data.card);
                 document.getElementById('cardDisplay').textContent = data.card;
             });
 
             socket.on('cardGuessResult', (data) => {
-                console.log('📊 Guess result:', data.correct);
-                const text = data.correct ? '✅ Correct!' : '❌ Wrong!';
-                document.getElementById('cardResult').textContent = text;
+                const result = data.correct ? '✅ Correct! +10 pts' : '❌ Wrong! -10 pts';
+                document.getElementById('cardResult').textContent = result;
+                gameState.holScore = data.score || gameState.holScore;
+                document.getElementById('holYourScore').textContent = gameState.holScore;
             });
 
             socket.on('scoreUpdated', (data) => {
-                console.log('📈 Scores updated:', data.scores);
                 gameState.scores = data.scores;
                 updateLeaderboard();
             });
 
-            socket.on('playerLeft', (data) => {
-                console.log('👋 Player left');
-                gameState.players = data.players;
-                gameState.scores = data.scores;
-                updatePlayersList();
-            });
-
             socket.on('error', (msg) => {
-                console.error('❌ Error:', msg);
                 alert('Error: ' + msg);
             });
         }
 
         function updateStatus(text, isOffline) {
             const bar = document.getElementById('statusBar');
-            bar.textContent = text;
+            document.getElementById('statusText').textContent = text;
             if (isOffline) {
                 bar.classList.add('offline');
             } else {
@@ -601,12 +1043,12 @@
             window.scrollTo(0, 0);
         }
 
-        function goToMenu() {
+        function goToHome() {
             if (gameState.roomCode && socket) {
                 socket.emit('leaveRoom', { roomCode: gameState.roomCode, playerName: gameState.playerName });
             }
-            gameState = { roomCode: null, playerName: null, players: [], scores: {}, gameMode: null, isPlaying: false, isHost: false };
-            showScreen('menuScreen');
+            gameState = { roomCode: null, playerName: null, players: [], scores: {}, gameMode: null, isPlaying: false, isHost: false, holScore: 0 };
+            showScreen('homeScreen');
         }
 
         function goToLobby() {
@@ -621,7 +1063,61 @@
             showScreen('selectorScreen');
         }
 
-        // ============ ROOM MANAGEMENT ============
+        // ============ QUICK JOIN FLOW ============
+        function quickJoinFlow() {
+            const code = document.getElementById('quickJoinCode').value.toUpperCase().trim();
+            if (!code || code.length !== 6) {
+                alert('Please enter a valid 6-character code');
+                return;
+            }
+            quickJoinCode = code;
+            document.getElementById('quickJoinModal').classList.add('active');
+            document.getElementById('quickJoinName').focus();
+        }
+
+        function closeQuickJoinModal() {
+            document.getElementById('quickJoinModal').classList.remove('active');
+            quickJoinCode = null;
+        }
+
+        function quickJoinRoom() {
+            const name = document.getElementById('quickJoinName').value.trim();
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            fetch('/api/rooms/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roomCode: quickJoinCode, playerName: name })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    gameState.roomCode = quickJoinCode;
+                    gameState.playerName = name;
+                    gameState.players = d.room.players || [];
+                    gameState.scores = Object.fromEntries((d.room.players || []).map(p => [p, 0]));
+                    
+                    document.getElementById('displayCode').textContent = quickJoinCode;
+                    closeQuickJoinModal();
+                    document.getElementById('quickJoinCode').value = '';
+                    
+                    initSocket();
+                    socket.emit('joinRoom', { roomCode: quickJoinCode, playerName: name });
+                    showScreen('lobbyScreen');
+                    updatePlayersList();
+                } else {
+                    alert('Failed to join: ' + d.error);
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+            });
+        }
+
+        // ============ CREATE ROOM ============
         function showCreateRoom() {
             document.getElementById('createModal').classList.add('active');
             document.getElementById('hostName').focus();
@@ -633,7 +1129,10 @@
 
         function createRoom() {
             const name = document.getElementById('hostName').value.trim();
-            if (!name) { alert('Please enter your name'); return; }
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
 
             fetch('/api/rooms/create', {
                 method: 'POST',
@@ -651,63 +1150,28 @@
                     
                     document.getElementById('displayCode').textContent = gameState.roomCode;
                     closeCreateModal();
+                    document.getElementById('hostName').value = '';
+                    
                     initSocket();
                     socket.emit('joinRoom', { roomCode: d.roomCode, playerName: name });
                     showScreen('lobbyScreen');
                     updatePlayersList();
                 }
             })
-            .catch(err => alert('Error creating room: ' + err));
-        }
-
-        function showJoinModal() {
-            document.getElementById('joinModal').classList.add('active');
-            document.getElementById('joinCode').focus();
-        }
-
-        function closeJoinModal() {
-            document.getElementById('joinModal').classList.remove('active');
-        }
-
-        function joinRoom() {
-            const code = document.getElementById('joinCode').value.toUpperCase().trim();
-            const name = document.getElementById('joinName').value.trim();
-
-            if (!code || code.length !== 6) { alert('Enter valid room code'); return; }
-            if (!name) { alert('Enter your name'); return; }
-
-            fetch('/api/rooms/join', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomCode: code, playerName: name })
-            })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    gameState.roomCode = code;
-                    gameState.playerName = name;
-                    gameState.players = d.room.players;
-                    gameState.scores = Object.fromEntries(d.room.players.map(p => [p, 0]));
-                    
-                    document.getElementById('displayCode').textContent = code;
-                    closeJoinModal();
-                    initSocket();
-                    socket.emit('joinRoom', { roomCode: code, playerName: name });
-                    showScreen('lobbyScreen');
-                    updatePlayersList();
-                } else {
-                    alert('Failed to join: ' + d.error);
-                }
-            })
-            .catch(err => alert('Error joining room: ' + err));
+            .catch(err => alert('Error: ' + err));
         }
 
         function updatePlayersList() {
             const list = document.getElementById('playersList');
-            list.innerHTML = gameState.players.map(p => `<div class="player-item">✅ ${p}</div>`).join('');
+            list.innerHTML = gameState.players.map(p => `
+                <div class="player-item">
+                    <span class="player-badge"></span>
+                    <span>${p}</span>
+                </div>
+            `).join('');
         }
 
-        // ============ GAME LOGIC ============
+        // ============ GAME SELECTION ============
         function startGame(mode) {
             if (!socket || !gameState.roomCode) return;
             socket.emit('selectGameMode', { roomCode: gameState.roomCode, gameMode: mode });
@@ -718,16 +1182,19 @@
                 socket.emit('getChallenge', { roomCode: gameState.roomCode });
                 showScreen('todScreen');
             } else if (mode === 'higherlower') {
+                gameState.holScore = 0;
+                document.getElementById('holYourScore').textContent = '0';
                 socket.emit('generateCard', { roomCode: gameState.roomCode });
                 showScreen('holScreen');
             } else if (mode === 'battleships') {
-                generateBattleshipGrid();
+                initializeBattleships();
                 showScreen('battleshipScreen');
             } else if (mode === 'wordle') {
                 showScreen('wordleScreen');
             }
         }
 
+        // ============ TRUTH OR DARE ============
         function getChallenge() {
             if (socket && gameState.roomCode) {
                 socket.emit('getChallenge', { roomCode: gameState.roomCode });
@@ -745,12 +1212,7 @@
             }
         }
 
-        function skipChallenge() {
-            if (socket && gameState.roomCode) {
-                socket.emit('skipChallenge', { roomCode: gameState.roomCode });
-            }
-        }
-
+        // ============ HIGHER OR LOWER ============
         function guessCard(guess) {
             if (socket && gameState.roomCode) {
                 socket.emit('guessCard', {
@@ -761,37 +1223,132 @@
             }
         }
 
+        // ============ BATTLESHIPS ============
+        let battleshipState = {
+            ships: [
+                { name: 'Carrier', size: 5, horizontal: true, placed: false },
+                { name: 'Battleship', size: 4, horizontal: true, placed: false },
+                { name: 'Cruiser', size: 3, horizontal: true, placed: false },
+                { name: 'Destroyer', size: 3, horizontal: true, placed: false },
+                { name: 'Submarine', size: 2, horizontal: true, placed: false }
+            ],
+            grid: Array(100).fill(0)
+        };
+
+        function initializeBattleships() {
+            generateBattleshipGrid();
+            updateShipPalette();
+        }
+
         function generateBattleshipGrid() {
             const grid = document.getElementById('battleshipGrid');
             grid.innerHTML = '';
             for (let i = 0; i < 100; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
+                cell.id = `cell-${i}`;
                 cell.textContent = (i % 10) + 1;
+                cell.onclick = () => placeShip(i);
                 grid.appendChild(cell);
             }
         }
 
+        function updateShipPalette() {
+            const list = document.getElementById('shipsList');
+            list.innerHTML = battleshipState.ships.map((ship, idx) => `
+                <div class="ship-item">
+                    <div>
+                        <div class="ship-name">${ship.name}</div>
+                        <div class="ship-size">${ship.size} cells</div>
+                    </div>
+                    <button class="orientation-btn ${ship.horizontal ? 'active' : ''}" onclick="toggleOrientation(${idx})">
+                        ${ship.horizontal ? '→ Horizontal' : '↓ Vertical'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function toggleOrientation(shipIdx) {
+            battleshipState.ships[shipIdx].horizontal = !battleshipState.ships[shipIdx].horizontal;
+            updateShipPalette();
+        }
+
+        function placeShip(cellIndex) {
+            // Find first unplaced ship
+            const ship = battleshipState.ships.find(s => !s.placed);
+            if (!ship) {
+                alert('All ships placed!');
+                return;
+            }
+
+            const row = Math.floor(cellIndex / 10);
+            const col = cellIndex % 10;
+
+            // Validate placement
+            if (ship.horizontal && col + ship.size > 10) {
+                alert('Ship too close to edge!');
+                return;
+            }
+            if (!ship.horizontal && row + ship.size > 10) {
+                alert('Ship too close to edge!');
+                return;
+            }
+
+            // Place ship
+            for (let i = 0; i < ship.size; i++) {
+                const idx = ship.horizontal ? cellIndex + i : cellIndex + (i * 10);
+                battleshipState.grid[idx] = 1;
+                document.getElementById(`cell-${idx}`).classList.add('ship');
+            }
+
+            ship.placed = true;
+            updateShipPalette();
+
+            if (battleshipState.ships.every(s => s.placed)) {
+                document.querySelector('#battleshipScreen .btn-success:last-of-type').textContent = '✅ Ready!';
+            }
+        }
+
+        function resetBattleships() {
+            battleshipState = {
+                ships: [
+                    { name: 'Carrier', size: 5, horizontal: true, placed: false },
+                    { name: 'Battleship', size: 4, horizontal: true, placed: false },
+                    { name: 'Cruiser', size: 3, horizontal: true, placed: false },
+                    { name: 'Destroyer', size: 3, horizontal: true, placed: false },
+                    { name: 'Submarine', size: 2, horizontal: true, placed: false }
+                ],
+                grid: Array(100).fill(0)
+            };
+            initializeBattleships();
+        }
+
         function startBattleships() {
+            if (!battleshipState.ships.every(s => s.placed)) {
+                alert('Place all ships first!');
+                return;
+            }
+
             if (socket && gameState.roomCode) {
-                const ships = [
-                    { x: 0, y: 0, length: 5, horizontal: true },
-                    { x: 0, y: 1, length: 4, horizontal: true },
-                    { x: 0, y: 2, length: 3, horizontal: true },
-                    { x: 0, y: 3, length: 3, horizontal: true },
-                    { x: 0, y: 4, length: 2, horizontal: true }
-                ];
                 socket.emit('placeBattleships', {
                     roomCode: gameState.roomCode,
                     playerName: gameState.playerName,
-                    ships: ships
+                    ships: battleshipState.ships.map(s => ({
+                        name: s.name,
+                        size: s.size,
+                        horizontal: s.horizontal
+                    }))
                 });
             }
         }
 
+        // ============ WORDLE ============
         function submitWordleWord() {
             const word = document.getElementById('wordleWord').value.toUpperCase().trim();
-            if (word.length !== 5) { alert('Word must be 5 letters'); return; }
+            if (word.length !== 5) {
+                alert('Word must be 5 letters');
+                return;
+            }
 
             if (socket && gameState.roomCode) {
                 socket.emit('setWordleWord', {
@@ -799,22 +1356,34 @@
                     playerName: gameState.playerName,
                     word: word
                 });
-                document.getElementById('wordleStatus').textContent = '✅ Word set! Waiting...';
+                document.getElementById('wordleStatus').textContent = '✅ Word set! Waiting for others...';
+                document.getElementById('wordleWord').disabled = true;
             }
         }
 
+        // ============ SCORES ============
         function updateLeaderboard() {
             const sorted = Object.entries(gameState.scores).sort((a, b) => b[1] - a[1]);
             const board = document.getElementById('leaderboard');
-            if (!board) return;
             
             board.innerHTML = sorted.map((item, idx) => {
                 const [player, score] = item;
-                const className = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
-                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-                return `<div class="leaderboard-item ${className}"><span>${medal} ${player}</span><span>${score}</span></div>`;
+                const className = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : 'other';
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+                return `
+                    <div class="leaderboard-item ${className}">
+                        <span class="leaderboard-medal">${medal}</span>
+                        <span class="leaderboard-name">${player}</span>
+                        <span class="leaderboard-score">${score}</span>
+                    </div>
+                `;
             }).join('');
         }
+
+        // ============ INITIALIZATION ============
+        window.addEventListener('load', () => {
+            console.log('Game Suite loaded');
+        });
     </script>
 </body>
 </html>
