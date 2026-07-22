@@ -9,7 +9,10 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
     pingInterval: 25000,
     pingTimeout: 60000
 });
@@ -18,29 +21,35 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
-const createRoomLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests'
+});
+
+const createRoomLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 5,
+    message: 'Too many rooms created'
+});
 
 app.use(limiter);
 
-// Load data
-let challengeDB = {};
-let wordList = [];
-
+// Load challenges
+let challengeDB = null;
 try {
-    challengeDB = JSON.parse(fs.readFileSync(path.join(__dirname, 'challengeDB.json'), 'utf8'));
+    const dbPath = path.join(__dirname, 'challengeDB.json');
+    challengeDB = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 } catch (err) {
     console.error('Failed to load challengeDB.json:', err.message);
-    challengeDB = { truth: {}, dare: {}, wildcards: [] };
+    challengeDB = {
+        truth: { easy: [], medium: [], hard: [], intimate: [], drinking: [], couples: [] },
+        dare: { easy: [], medium: [], hard: [], intimate: [], drinking: [], couples: [] },
+        wildcards: []
+    };
 }
 
-try {
-    wordList = JSON.parse(fs.readFileSync(path.join(__dirname, 'wordlist.json'), 'utf8')).words || [];
-} catch (err) {
-    console.error('Failed to load wordlist.json:', err.message);
-    wordList = [];
-}
-
+// Room Storage
 const rooms = new Map();
 const playerSockets = new Map();
 
@@ -58,37 +67,41 @@ function sanitizeName(name) {
 }
 
 // Routes
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.post('/api/rooms/create', createRoomLimiter, (req, res) => {
     try {
         const playerName = sanitizeName(req.body.playerName || 'Host');
         let roomCode = generateRoomCode();
-        while (rooms.has(roomCode)) roomCode = generateRoomCode();
+        
+        while (rooms.has(roomCode)) {
+            roomCode = generateRoomCode();
+        }
 
         rooms.set(roomCode, {
             code: roomCode,
             players: [{ name: playerName, id: Math.random().toString(36) }],
             scores: { [playerName]: 0 },
-            gameMode: 'menu',
             currentPlayerIndex: 0,
             currentAnsweringPlayerName: playerName,
             round: 1,
+            totalRounds: 5,
             isPlaying: false,
-            // Advanced ToD Settings
-            todSettings: {
-                categories: ['easy', 'medium', 'hard'],
-                totalRounds: 5
-            },
-            todVotes: { passes: 0, fails: 0, votedPlayers: [] },
-            tiedPlayers: [],
-            isTieBreaker: false,
+            selectedDifficulties: { easy: true, medium: true, hard: true, intimate: true, drinking: true, couples: false },
+            includeWildcards: false,
             currentChallenge: null,
             createdAt: Date.now(),
             lastActivity: Date.now()
         });
 
-        res.json({ success: true, roomCode: roomCode });
+        res.json({
+            success: true,
+            roomCode: roomCode,
+            message: 'Room created'
+        });
     } catch (error) {
         console.error('Create room error:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -100,15 +113,22 @@ app.post('/api/rooms/join', (req, res) => {
         const roomCode = String(req.body.roomCode || '').toUpperCase().trim();
         const playerName = sanitizeName(req.body.playerName || 'Player');
 
-        if (!roomCode || roomCode.length !== 6 || !rooms.has(roomCode)) {
+        if (!roomCode || roomCode.length !== 6) {
+            return res.status(400).json({ success: false, error: 'Invalid room code' });
+        }
+
+        if (!rooms.has(roomCode)) {
             return res.status(404).json({ success: false, error: 'Room not found' });
         }
 
         const room = rooms.get(roomCode);
-        if (!room.players.find(p => p.name === playerName)) {
+        
+        const existingPlayer = room.players.find(p => p.name === playerName);
+        if (!existingPlayer) {
             room.players.push({ name: playerName, id: Math.random().toString(36) });
             room.scores[playerName] = 0;
         }
+        
         room.lastActivity = Date.now();
 
         res.json({
@@ -118,8 +138,14 @@ app.post('/api/rooms/join', (req, res) => {
                 code: roomCode,
                 players: room.players.map(p => p.name),
                 scores: room.scores,
-                gameMode: room.gameMode,
-                todSettings: room.todSettings
+                currentPlayerIndex: room.currentPlayerIndex,
+                currentAnsweringPlayerName: room.currentAnsweringPlayerName,
+                round: room.round,
+                totalRounds: room.totalRounds,
+                isPlaying: room.isPlaying,
+                selectedDifficulties: room.selectedDifficulties,
+                includeWildcards: room.includeWildcards,
+                currentChallenge: room.currentChallenge
             }
         });
     } catch (error) {
@@ -128,13 +154,74 @@ app.post('/api/rooms/join', (req, res) => {
     }
 });
 
-// Socket.io Events
-io.on('connection', (socket) => {
-    socket.on('joinRoom', (data) => {
-        const { roomCode, playerName } = data;
-        if (!roomCode || !playerName || !rooms.has(roomCode)) return;
+app.get('/api/rooms/:code', (req, res) => {
+    try {
+        const roomCode = String(req.params.code || '').toUpperCase().trim();
+
+        if (!rooms.has(roomCode)) {
+            return res.status(404).json({ success: false, error: 'Room not found' });
+        }
 
         const room = rooms.get(roomCode);
+        room.lastActivity = Date.now();
+
+        res.json({
+            success: true,
+            room: {
+                code: roomCode,
+                players: room.players.map(p => p.name),
+                scores: room.scores,
+                currentPlayerIndex: room.currentPlayerIndex,
+                currentAnsweringPlayerName: room.currentAnsweringPlayerName,
+                round: room.round,
+                totalRounds: room.totalRounds,
+                isPlaying: room.isPlaying,
+                selectedDifficulties: room.selectedDifficulties,
+                includeWildcards: room.includeWildcards,
+                currentChallenge: room.currentChallenge
+            }
+        });
+    } catch (error) {
+        console.error('Get room error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        activeRooms: rooms.size
+    });
+});
+
+// Socket.io
+
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    socket.on('joinRoom', (data) => {
+        const { roomCode, playerName } = data;
+        
+        if (!roomCode || !playerName) {
+            socket.emit('error', 'Invalid room or player name');
+            return;
+        }
+
+        if (!rooms.has(roomCode)) {
+            socket.emit('error', 'Room not found');
+            return;
+        }
+
+        const room = rooms.get(roomCode);
+        
+        const existingPlayer = room.players.find(p => p.name === playerName);
+        if (!existingPlayer) {
+            room.players.push({ name: playerName, id: socket.id });
+            room.scores[playerName] = 0;
+        }
+
         socket.join(roomCode);
         playerSockets.set(socket.id, { roomCode, playerName });
         room.lastActivity = Date.now();
@@ -142,194 +229,272 @@ io.on('connection', (socket) => {
         io.to(roomCode).emit('playerJoined', {
             players: room.players.map(p => p.name),
             scores: room.scores,
-            gameMode: room.gameMode,
-            todSettings: room.todSettings
+            currentPlayerIndex: room.currentPlayerIndex,
+            currentAnsweringPlayerName: room.currentAnsweringPlayerName,
+            round: room.round,
+            totalRounds: room.totalRounds,
+            selectedDifficulties: room.selectedDifficulties,
+            includeWildcards: room.includeWildcards
+        });
+
+        console.log(`${playerName} joined room ${roomCode}`);
+    });
+
+    socket.on('updateDifficulties', (data) => {
+        const { roomCode, selectedDifficulties } = data;
+        
+        if (rooms.has(roomCode)) {
+            rooms.get(roomCode).selectedDifficulties = selectedDifficulties;
+            // BROADCAST to ALL players in room (not just others)
+            io.to(roomCode).emit('difficultiesUpdated', selectedDifficulties);
+        }
+    });
+
+    socket.on('toggleWildcards', (data) => {
+        const { roomCode, includeWildcards } = data;
+        
+        if (rooms.has(roomCode)) {
+            rooms.get(roomCode).includeWildcards = includeWildcards;
+            // BROADCAST to ALL players in room
+            io.to(roomCode).emit('wildcardsUpdated', { includeWildcards });
+        }
+    });
+
+    socket.on('setRounds', (data) => {
+        const { roomCode, totalRounds } = data;
+        
+        if (rooms.has(roomCode)) {
+            rooms.get(roomCode).totalRounds = totalRounds;
+            // BROADCAST to ALL players in room
+            io.to(roomCode).emit('roundsUpdated', { totalRounds });
+        }
+    });
+
+    socket.on('startGame', (data) => {
+        const { roomCode } = data;
+        
+        if (!rooms.has(roomCode)) return;
+        
+        const room = rooms.get(roomCode);
+        room.isPlaying = true;
+        room.currentPlayerIndex = 0;
+        room.currentAnsweringPlayerName = room.players[0].name;
+        room.round = 1;
+        room.lastActivity = Date.now();
+
+        io.to(roomCode).emit('gameStarted', {
+            players: room.players.map(p => p.name),
+            currentPlayerIndex: room.currentPlayerIndex,
+            currentAnsweringPlayerName: room.currentAnsweringPlayerName,
+            round: room.round,
+            totalRounds: room.totalRounds,
+            selectedDifficulties: room.selectedDifficulties
+        });
+
+        console.log(`Game started in room ${roomCode}`);
+    });
+
+    socket.on('getChallenge', (data) => {
+        const { roomCode } = data;
+        
+        if (!rooms.has(roomCode)) return;
+        
+        const room = rooms.get(roomCode);
+        const challenge = generateChallenge(room.selectedDifficulties, room.includeWildcards);
+        room.currentChallenge = challenge;
+        room.lastActivity = Date.now();
+
+        io.to(roomCode).emit('challengeGenerated', {
+            challenge: challenge,
+            currentPlayer: room.currentAnsweringPlayerName,
+            currentPlayerIndex: room.currentPlayerIndex,
+            round: room.round,
+            totalRounds: room.totalRounds
         });
     });
 
-    socket.on('updateTodSettings', (data) => {
-        const { roomCode, categories, totalRounds } = data;
-        if (!rooms.has(roomCode)) return;
-        const room = rooms.get(roomCode);
-        room.todSettings.categories = categories;
-        room.todSettings.totalRounds = totalRounds;
-        io.to(roomCode).emit('todSettingsUpdated', room.todSettings);
-    });
-
-    socket.on('selectGameMode', (data) => {
-        const { roomCode, gameMode } = data;
-        if (!rooms.has(roomCode)) return;
-
-        const room = rooms.get(roomCode);
-        room.gameMode = gameMode;
-        room.isPlaying = true;
-        room.currentPlayerIndex = 0;
-        room.round = 1;
-        room.isTieBreaker = false;
-        room.tiedPlayers = [];
+    socket.on('completeChallenge', (data) => {
+        const { roomCode, playerName, points, completedByName } = data;
         
-        // Reset scores
-        room.players.forEach(p => room.scores[p.name] = 0);
+        if (!rooms.has(roomCode)) return;
+        
+        const room = rooms.get(roomCode);
+        
+        // VALIDATION: Only allow completion if completedByName is NOT the answering player
+        if (completedByName === room.currentAnsweringPlayerName) {
+            socket.emit('error', 'Only others can mark challenge as done!');
+            return;
+        }
+        
+        room.scores[playerName] = (room.scores[playerName] || 0) + points;
         room.lastActivity = Date.now();
 
-        io.to(roomCode).emit('gameModeSelected', {
-            gameMode: gameMode,
-            players: room.players.map(p => p.name),
+        io.to(roomCode).emit('scoreUpdated', {
             scores: room.scores
         });
 
-        if (gameMode === 'truthordare') {
-            getChallenge(roomCode);
-        } else if (gameMode === 'higherlower') {
-            generateCard(roomCode);
-        }
+        nextPlayerInRoom(roomCode);
     });
 
-    socket.on('judgeChallenge', (data) => {
-        const { roomCode, playerName, passed } = data;
-        if (!rooms.has(roomCode)) return;
-
-        const room = rooms.get(roomCode);
+    socket.on('skipChallenge', (data) => {
+        const { roomCode } = data;
         
-        if (playerName === room.currentAnsweringPlayerName || room.todVotes.votedPlayers.includes(playerName)) return;
+        if (!rooms.has(roomCode)) return;
+        
+        const room = rooms.get(roomCode);
+        room.lastActivity = Date.now();
 
-        room.todVotes.votedPlayers.push(playerName);
-        if (passed) room.todVotes.passes++;
-        else room.todVotes.fails++;
-
-        const requiredVotes = Math.max(1, room.players.length - 1); // 1 if solo play
-
-        if (room.todVotes.votedPlayers.length >= requiredVotes) {
-            const taskPassed = room.todVotes.passes >= room.todVotes.fails;
-            
-            if (taskPassed) {
-                room.scores[room.currentAnsweringPlayerName] = (room.scores[room.currentAnsweringPlayerName] || 0) + 25;
-            }
-
-            io.to(roomCode).emit('challengeJudged', {
-                passed: taskPassed,
-                scores: room.scores,
-                passes: room.todVotes.passes,
-                fails: room.todVotes.fails
-            });
-
-            setTimeout(() => advanceTodTurn(roomCode), 4000); // Wait 4s to show results, then move on
-        } else {
-            io.to(roomCode).emit('voteRegistered', { 
-                votesCast: room.todVotes.votedPlayers.length,
-                votesNeeded: requiredVotes 
-            });
-        }
+        nextPlayerInRoom(roomCode);
     });
 
-    // ... (Higher/Lower & Battleships logic remains unchanged from previous version)
+    socket.on('leaveRoom', (data) => {
+        const { roomCode, playerName } = data;
+        
+        if (rooms.has(roomCode)) {
+            const room = rooms.get(roomCode);
+            room.players = room.players.filter(p => p.name !== playerName);
+            delete room.scores[playerName];
+            
+            if (room.players.length === 0) {
+                rooms.delete(roomCode);
+                console.log(`Room ${roomCode} deleted (empty)`);
+            } else {
+                room.lastActivity = Date.now();
+                io.to(roomCode).emit('playerLeft', {
+                    players: room.players.map(p => p.name),
+                    scores: room.scores
+                });
+            }
+        }
+        
+        playerSockets.delete(socket.id);
+        socket.leave(roomCode);
+    });
 
     socket.on('disconnect', () => {
         const info = playerSockets.get(socket.id);
-        if (info) playerSockets.delete(socket.id);
+        if (info) {
+            const { roomCode, playerName } = info;
+            
+            if (rooms.has(roomCode)) {
+                const room = rooms.get(roomCode);
+                room.players = room.players.filter(p => p.name !== playerName);
+                delete room.scores[playerName];
+                
+                if (room.players.length === 0) {
+                    rooms.delete(roomCode);
+                } else {
+                    io.to(roomCode).emit('playerLeft', {
+                        players: room.players.map(p => p.name),
+                        scores: room.scores
+                    });
+                }
+            }
+            
+            playerSockets.delete(socket.id);
+        }
+        console.log('User disconnected:', socket.id);
     });
 });
 
-function getChallenge(roomCode) {
+function nextPlayerInRoom(roomCode) {
     if (!rooms.has(roomCode)) return;
     
     const room = rooms.get(roomCode);
-    const isTruth = Math.random() > 0.5;
+    room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.players.length;
+    room.currentAnsweringPlayerName = room.players[room.currentPlayerIndex].name;
     
-    // Pick random category from host settings
-    const activeCategories = room.todSettings.categories.length > 0 ? room.todSettings.categories : ['easy'];
-    const selectedCategory = activeCategories[Math.floor(Math.random() * activeCategories.length)];
-    
-    // Safely pull from DB, fallback to easy if category missing
-    const dbSection = isTruth ? challengeDB.truth : challengeDB.dare;
-    let categoryList = dbSection[selectedCategory] || dbSection['easy'] || [{ text: "Tell us a secret", emoji: "🤫" }];
-
-    const challenge = categoryList[Math.floor(Math.random() * categoryList.length)];
-    
-    // Determine whose turn it is
-    let targetPlayers = room.isTieBreaker ? room.tiedPlayers : room.players;
-    
-    // Failsafe if someone disconnected during a tiebreaker
-    if (room.isTieBreaker && targetPlayers.length === 0) targetPlayers = room.players;
-
-    room.currentAnsweringPlayerName = targetPlayers[room.currentPlayerIndex].name;
-    room.currentChallenge = { ...challenge, type: isTruth ? 'Truth' : 'Dare', category: selectedCategory };
-    room.todVotes = { passes: 0, fails: 0, votedPlayers: [] };
-
-    io.to(roomCode).emit('challengeGenerated', {
-        challenge: room.currentChallenge,
-        currentPlayer: room.currentAnsweringPlayerName,
-        round: room.round,
-        totalRounds: room.todSettings.totalRounds,
-        isTieBreaker: room.isTieBreaker
-    });
-}
-
-function advanceTodTurn(roomCode) {
-    if (!rooms.has(roomCode)) return;
-    const room = rooms.get(roomCode);
-
-    let targetPlayers = room.isTieBreaker ? room.tiedPlayers : room.players;
-    
-    room.currentPlayerIndex++;
-
-    // Check if we reached the end of the round
-    if (room.currentPlayerIndex >= targetPlayers.length) {
-        room.currentPlayerIndex = 0;
-        
-        if (!room.isTieBreaker) {
-            room.round++;
-        }
-
-        // Check if game is over
-        if (!room.isTieBreaker && room.round > room.todSettings.totalRounds) {
-            evaluateTodWinner(room);
-            return;
-        } else if (room.isTieBreaker) {
-            // End of a tie-breaker round, re-evaluate
-            evaluateTodWinner(room);
-            return;
-        }
+    if (room.currentPlayerIndex === 0) {
+        room.round++;
     }
 
-    getChallenge(roomCode);
-}
-
-function evaluateTodWinner(room) {
-    let targetPlayers = room.isTieBreaker ? room.tiedPlayers : room.players;
-    let maxScore = -1;
-    
-    // Find the highest score among eligible players
-    targetPlayers.forEach(p => {
-        if (room.scores[p.name] > maxScore) maxScore = room.scores[p.name];
-    });
-
-    const winners = targetPlayers.filter(p => room.scores[p.name] === maxScore);
-
-    if (winners.length === 1 || winners.length === targetPlayers.length && room.isTieBreaker) {
-        // We have a definitive winner (or everyone is perfectly tied after sudden death and we just end it)
-        room.gameMode = 'lobby';
-        io.to(room.code).emit('todGameOver', {
-            winners: winners.map(w => w.name),
-            scores: room.scores
+    if (room.round > room.totalRounds) {
+        io.to(roomCode).emit('gameEnded', {
+            scores: room.scores,
+            players: room.players.map(p => p.name)
         });
     } else {
-        // We have a tie
-        room.isTieBreaker = true;
-        room.tiedPlayers = winners;
-        room.currentPlayerIndex = 0;
-        
-        io.to(room.code).emit('todTieBreaker', {
-            tiedPlayers: winners.map(w => w.name)
+        io.to(roomCode).emit('nextPlayer', {
+            currentPlayerIndex: room.currentPlayerIndex,
+            currentAnsweringPlayerName: room.currentAnsweringPlayerName,
+            round: room.round,
+            totalRounds: room.totalRounds,
+            currentPlayer: room.currentAnsweringPlayerName
         });
-        
-        // Start tie breaker round
-        setTimeout(() => getChallenge(room.code), 3000);
     }
 }
 
-// ... (Other helper functions remain unchanged)
+function generateChallenge(selectedDifficulties, includeWildcards) {
+    // 10% chance of wildcard if enabled
+    if (includeWildcards && Math.random() < 0.1 && challengeDB.wildcards && challengeDB.wildcards.length > 0) {
+        const wildcard = challengeDB.wildcards[Math.floor(Math.random() * challengeDB.wildcards.length)];
+        return {
+            ...wildcard,
+            isWildcard: true
+        };
+    }
+
+    const difficulties = Object.keys(selectedDifficulties)
+        .filter(d => selectedDifficulties[d] && d !== 'wildcards');
+    
+    if (difficulties.length === 0) {
+        difficulties.push('easy');
+    }
+
+    const randomDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+    const isTruth = Math.random() > 0.5;
+    
+    const categoryList = isTruth 
+        ? (challengeDB.truth?.[randomDifficulty] || []) 
+        : (challengeDB.dare?.[randomDifficulty] || []);
+    
+    if (!categoryList || categoryList.length === 0) {
+        return { 
+            text: "Default challenge", 
+            emoji: "🎭", 
+            type: isTruth ? "Truth" : "Dare", 
+            difficulty: randomDifficulty 
+        };
+    }
+    
+    const challenge = categoryList[Math.floor(Math.random() * categoryList.length)];
+
+    return {
+        ...challenge,
+        type: isTruth ? 'Truth' : 'Dare',
+        difficulty: randomDifficulty
+    };
+}
+
+// Cleanup
+setInterval(() => {
+    const now = Date.now();
+    const inactivityTimeout = 60 * 60 * 1000;
+
+    for (const [code, room] of rooms) {
+        if (now - room.lastActivity > inactivityTimeout) {
+            rooms.delete(code);
+            console.log(`Cleaned up inactive room: ${code}`);
+        }
+    }
+}, 10 * 60 * 1000);
+
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+});
+
+app.use((req, res) => {
+    if (!req.path.startsWith('/api/')) {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+        res.status(404).json({ success: false, error: 'Not found' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📍 Open: http://localhost:${PORT}`);
+    console.log(`🎮 Serving from: ${path.join(__dirname, 'public')}`);
 });

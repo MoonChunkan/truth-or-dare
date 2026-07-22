@@ -87,6 +87,26 @@
       { "text": "Have you ever cheated while drunk?", "emoji": "💔" },
       { "text": "What's the funniest thing you've done drunk?", "emoji": "😂" },
       { "text": "Have you ever gotten in a fight drunk?", "emoji": "👊" }
+    ],
+    "couples": [
+      { "text": "What was the first thing you noticed about me?", "emoji": "💕" },
+      { "text": "When did you know I was the one?", "emoji": "✨" },
+      { "text": "What's your favorite memory with me?", "emoji": "📸" },
+      { "text": "What do you love most about my body?", "emoji": "😍" },
+      { "text": "What's your favorite thing I do for you?", "emoji": "💗" },
+      { "text": "What makes my smile special to you?", "emoji": "😊" },
+      { "text": "What's something I do that turns you on?", "emoji": "🔥" },
+      { "text": "How do I make you feel loved?", "emoji": "💕" },
+      { "text": "What's your favorite date we've had?", "emoji": "🌹" },
+      { "text": "What's your fantasy with me?", "emoji": "💭" },
+      { "text": "If we lived together, what would you miss most about me when I'm away?", "emoji": "💔" },
+      { "text": "What do you imagine our future looks like?", "emoji": "🌈" },
+      { "text": "What part of me do you miss the most?", "emoji": "😔" },
+      { "text": "What's something I do that makes you feel safe?", "emoji": "🤝" },
+      { "text": "How do you want to be touched by me?", "emoji": "✋" },
+      { "text": "What's your favorite way I show affection?", "emoji": "💋" },
+      { "text": "What's something you wish you could tell me without being shy?", "emoji": "🗣️" },
+      { "text": "What makes our connection special to you?", "emoji": "✨" }
     ]
   },
   "dare": {
@@ -174,6 +194,26 @@
       { "text": "Everyone takes a shot together", "emoji": "🥂" },
       { "text": "Take a shot for each lie you've told today", "emoji": "🤥" },
       { "text": "Take a shot and do something embarrassing", "emoji": "😳" }
+    ],
+    "couples": [
+      { "text": "Describe what you'd do if you were with me right now", "emoji": "💭" },
+      { "text": "Send me a slow, sensual selfie", "emoji": "📸" },
+      { "text": "Tell me 3 things you love about me", "emoji": "💕" },
+      { "text": "Give me a virtual massage by describing it in detail", "emoji": "💆" },
+      { "text": "Tell me how you'd kiss me if you were here", "emoji": "💋" },
+      { "text": "Describe what you find sexiest about me", "emoji": "🔥" },
+      { "text": "Whisper something flirty to the camera", "emoji": "🗣️" },
+      { "text": "Do a slow dance just for me", "emoji": "💃" },
+      { "text": "Describe your favorite intimate moment with me", "emoji": "😍" },
+      { "text": "Tell me what you'd do to me if we were together", "emoji": "🌶️" },
+      { "text": "Send me a kiss through the camera in slow motion", "emoji": "💋" },
+      { "text": "Describe how you'd touch me right now", "emoji": "✋" },
+      { "text": "Do something that reminds me of you", "emoji": "🎭" },
+      { "text": "Tell me your favorite thing about being with me", "emoji": "💗" },
+      { "text": "Strike a sexy pose for me", "emoji": "😎" },
+      { "text": "Play with your hair seductively for me", "emoji": "💇" },
+      { "text": "Describe what you're wearing (or what you wish you were)", "emoji": "👗" },
+      { "text": "Give me a private show of your favorite move", "emoji": "🎪" }
     ]
   },
   "wildcards": [
