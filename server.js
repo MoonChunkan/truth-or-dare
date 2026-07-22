@@ -176,7 +176,7 @@ io.on('connection', (socket) => {
         // Initialize game based on mode
         if (gameMode === 'truthordare') {
             getChallenge(roomCode);
-        } else if (gameMode === 'higherrlower') {
+        } else if (gameMode === 'higherlower') { // FIX: Corrected typo from 'higherrlower' to 'higherlower'
             generateCard(roomCode);
         } else if (gameMode === 'battleships') {
             io.to(roomCode).emit('initBattleships', { players: room.players.map(p => p.name) });
@@ -189,6 +189,18 @@ io.on('connection', (socket) => {
         const { roomCode } = data;
         if (!rooms.has(roomCode)) return;
         getChallenge(roomCode);
+    });
+
+    // FIX: Added missing event listener to award points for Truth or Dare
+    socket.on('completeChallenge', (data) => {
+        const { roomCode, playerName, points } = data;
+        if (!rooms.has(roomCode)) return;
+
+        const room = rooms.get(roomCode);
+        room.scores[playerName] = (room.scores[playerName] || 0) + (points || 25);
+        room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.players.length;
+        
+        io.to(roomCode).emit('scoreUpdated', { scores: room.scores });
     });
 
     socket.on('generateCard', (data) => {
@@ -249,7 +261,7 @@ io.on('connection', (socket) => {
             room.scores[playerName] = (room.scores[playerName] || 0) + 10;
             io.to(roomCode).emit('battleshipHit', { x, y, playerName, hit: true });
             
-            if (targetState.hits.filter(h => h).length >= 17) { // 5+4+3+3+2 = 17 hits
+            if (targetState.hits.filter(h => h).length >= 17) {
                 room.scores[playerName] += 100;
                 io.to(roomCode).emit('battleshipsWon', { winner: playerName });
                 room.gameMode = 'lobby';

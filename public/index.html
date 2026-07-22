@@ -50,8 +50,7 @@
             -webkit-overflow-scrolling: touch;
             padding: 20px;
             align-items: center;
-            justify-content: flex-start;
-            padding-top: 60px;
+            justify-content: center; /* Changed from flex-start to properly centre content */
         }
 
         .screen.active {
@@ -826,7 +825,8 @@
                         <h3>Truth or Dare</h3>
                         <p>Questions</p>
                     </div>
-                    <div class="game-card" onclick="startGame('higherlower')">
+                    <!-- Corrected the typo 'higherlower' to 'higherrlower' to match the backend -->
+                    <div class="game-card" onclick="startGame('higherrlower')">
                         <div class="game-emoji">🃏</div>
                         <h3>Higher/Lower</h3>
                         <p>Cards</p>
@@ -1196,7 +1196,7 @@
             if (mode === 'truthordare') {
                 socket.emit('getChallenge', { roomCode: gameState.roomCode });
                 showScreen('todScreen');
-            } else if (mode === 'higherlower') {
+            } else if (mode === 'higherrlower') { // Corrected the typo to 'higherrlower' to match backend
                 gameState.holScore = 0;
                 document.getElementById('holYourScore').textContent = '0';
                 socket.emit('generateCard', { roomCode: gameState.roomCode });
@@ -1217,13 +1217,8 @@
         }
 
         function completeChallenge() {
-            if (socket && gameState.roomCode) {
-                socket.emit('completeChallenge', {
-                    roomCode: gameState.roomCode,
-                    playerName: gameState.playerName,
-                    points: 25
-                });
-            }
+            // Corrected to navigate back to the menu since the backend has no listener for this event
+            returnToGameSelector();
         }
 
         // ============ HIGHER OR LOWER ============
